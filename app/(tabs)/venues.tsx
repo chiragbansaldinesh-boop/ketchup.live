@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { MapPin, Users, Clock, Star, Navigation } from 'lucide-react-native';
 import SafetyBanner from '@/components/SafetyBanner';
+import { useVenues, useVenueCheckIn } from '@/hooks/useFirestore';
+import { firestoreService } from '@/services/firestoreService';
 
 const { width } = Dimensions.get('window');
 
@@ -83,6 +85,12 @@ const mockVenues: Venue[] = [
 ];
 
 export default function VenuesScreen() {
+  // TODO: Replace with actual user ID from authentication
+  const currentUserId = 'current-user-id';
+  
+  const { venues: firestoreVenues, loading: venuesLoading } = useVenues();
+  const { checkIn, checkOut, loading: checkInLoading } = useVenueCheckIn();
+  
   const [venues, setVenues] = useState(mockVenues);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<'all' | 'coffee' | 'bar' | 'restaurant'>('all');
@@ -105,6 +113,11 @@ export default function VenuesScreen() {
   });
 
   const extendCheckIn = (venueId: string) => {
+    // TODO: Extend check-in via Firestore
+    if (currentUserId) {
+      checkIn(currentUserId, venueId, 4); // Extend for 4 hours
+    }
+    
     setVenues(prev => prev.map(venue => 
       venue.id === venueId 
         ? { ...venue, checkInExpiry: '4:30 PM' }

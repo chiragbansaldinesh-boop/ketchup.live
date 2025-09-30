@@ -12,6 +12,8 @@ import {
 import { Send, MapPin, Gamepad as GamepadIcon, MoveVertical as MoreVertical, Shield, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import BlockUserModal from '@/components/BlockUserModal';
 import { privacyService } from '@/services/privacyService';
+import { useMatches, useMessages } from '@/hooks/useFirestore';
+import { firestoreService } from '@/services/firestoreService';
 
 interface Chat {
   id: string;
@@ -72,6 +74,12 @@ const icebreakers = [
 ];
 
 export default function ChatScreen() {
+  // TODO: Replace with actual user ID from authentication
+  const currentUserId = 'current-user-id';
+  
+  const { matches, loading: matchesLoading } = useMatches(currentUserId);
+  const { messages, sendMessage: sendFirestoreMessage } = useMessages(selectedChat?.id || null);
+  
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [message, setMessage] = useState('');
   const [showBlockModal, setShowBlockModal] = useState(false);
@@ -100,6 +108,11 @@ export default function ChatScreen() {
 
   const sendMessage = () => {
     if (message.trim()) {
+      // TODO: Send message via Firestore
+      if (selectedChat?.id) {
+        sendFirestoreMessage(currentUserId, message.trim());
+      }
+      
       const newMessage: Message = {
         id: Date.now().toString(),
         text: message.trim(),
