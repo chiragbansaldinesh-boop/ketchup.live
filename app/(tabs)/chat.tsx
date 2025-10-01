@@ -85,26 +85,6 @@ export default function ChatScreen() {
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      text: 'Hey! Nice to match with you at Blue Bottle ☕',
-      sender: 'other',
-      timestamp: '10:30 AM',
-    },
-    {
-      id: '2',
-      text: 'Hi! Yeah, what a coincidence! I love this place',
-      sender: 'me',
-      timestamp: '10:32 AM',
-    },
-    {
-      id: '3',
-      text: 'That sounds like a great idea! 😊',
-      sender: 'other',
-      timestamp: '10:35 AM',
-    },
-  ]);
 
   const sendMessage = () => {
     if (message.trim()) {
@@ -113,13 +93,6 @@ export default function ChatScreen() {
         sendFirestoreMessage(currentUserId, message.trim());
       }
       
-      const newMessage: Message = {
-        id: Date.now().toString(),
-        text: message.trim(),
-        sender: 'me',
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages([...messages, newMessage]);
       setMessage('');
     }
   };
