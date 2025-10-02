@@ -77,10 +77,11 @@ export default function ChatScreen() {
   // TODO: Replace with actual user ID from authentication
   const currentUserId = 'current-user-id';
   
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  
   const { matches, loading: matchesLoading } = useMatches(currentUserId);
   const { messages, sendMessage: sendFirestoreMessage } = useMessages(selectedChat?.id || null);
   
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [message, setMessage] = useState('');
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showChatMenu, setShowChatMenu] = useState(false);
