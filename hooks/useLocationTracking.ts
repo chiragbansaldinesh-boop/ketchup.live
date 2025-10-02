@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import * as Location from 'expo-location';
 import { Platform } from 'react-native';
+import * as Location from 'expo-location';
 import { Coordinates, CafeLocation, isWithinRadius, calculateDistance } from '@/utils/locationUtils';
 
 export interface LocationState {
@@ -133,9 +133,26 @@ export function useLocationTracking({
   };
 
   const stopLocationTracking = () => {
-    if (watchSubscription.current && typeof watchSubscription.current.remove === 'function') {
-      watchSubscription.current.remove();
-      watchSubscription.current = null;
+    if (watchSubscription.current) {
+      try {
+        if (Platform.OS === 'web') {
+          // On web, watchSubscription might be a numeric watchId
+          if (typeof watchSubscription.current === 'number') {
+            navigator.geolocation.clearWatch(watchSubscription.current);
+          } else if (typeof watchSubscription.current.remove === 'function') {
+            watchSubscription.current.remove();
+          }
+        } else {
+          // On native platforms, use the remove method
+          if (typeof watchSubscription.current.remove === 'function') {
+            watchSubscription.current.remove();
+          }
+        }
+      } catch (error) {
+        console.warn('Error stopping location tracking:', error);
+      } finally {
+        watchSubscription.current = null;
+      }
     }
   };
 

@@ -98,13 +98,9 @@ export default function ChatScreen() {
   };
 
   const sendIcebreaker = (text: string) => {
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text,
-      sender: 'me',
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-    setMessages([...messages, newMessage]);
+    if (selectedChat?.id) {
+      sendFirestoreMessage(currentUserId, text);
+    }
   };
 
   const checkBlockStatus = async (userId: string) => {
