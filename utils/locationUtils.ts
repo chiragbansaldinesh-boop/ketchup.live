@@ -68,3 +68,46 @@ export function formatDistance(distanceMeters: number): string {
   }
   return `${(distanceMeters / 1000).toFixed(1)}km`;
 }
+
+/**
+ * Check proximity to multiple locations
+ * @param userLocation User's current coordinates
+ * @param venues Array of venues with GeoPoint locations
+ * @param radiusMeters Radius in meters for geofence detection (default: 60m)
+ * @returns Array of venues with proximity data
+ */
+export interface VenueProximity {
+  id: string;
+  name: string;
+  type: string;
+  address: string;
+  distance: number;
+  isWithinRadius: boolean;
+  formattedDistance: string;
+}
+
+export function checkProximityToMultipleLocations(
+  userLocation: Coordinates,
+  venues: Array<{ id: string; name: string; type: string; address: string; location: any }>,
+  radiusMeters: number = 60
+): VenueProximity[] {
+  return venues.map(venue => {
+    // Convert GeoPoint to Coordinates if needed
+    const venueCoords: Coordinates = venue.location.latitude !== undefined 
+      ? { latitude: venue.location.latitude, longitude: venue.location.longitude }
+      : venue.location;
+    
+    const distance = calculateDistance(userLocation, venueCoords);
+    const isWithinRadius = distance <= radiusMeters;
+    
+    return {
+      id: venue.id,
+      name: venue.name,
+      type: venue.type,
+      address: venue.address,
+      distance,
+      isWithinRadius,
+      formattedDistance: formatDistance(distance),
+    };
+  });
+}
