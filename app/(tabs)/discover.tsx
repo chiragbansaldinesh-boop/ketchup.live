@@ -68,13 +68,7 @@ export default function DiscoverScreen() {
   const [users, setUsers] = useState(mockUsers);
   
   useEffect(() => {
-    loadBlockedUsers();
-    
-    // TODO: Update user location in Firestore when location changes
-    if (isWithinCafe && currentUser?.location) {
-      const coords = geoPointToCoordinates(currentUser.location);
-      updateLocation(coords.latitude, coords.longitude);
-    }
+    // TODO: Load blocked users and handle location updates when authentication is implemented
   }, []);
 
   // Note: Removed proximity check - users can now discover people at any venue
