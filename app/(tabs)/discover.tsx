@@ -22,4 +22,9 @@ export default function DiscoverScreen() {
       updateLocation(coords.latitude, coords.longitude);
     }
   }, []);
+
+  // Note: Removed proximity check - users can now discover people at any venue
+  // The VenuesScreen handles showing proximity to all venues
+  
+  const currentUser = filteredUsers[currentIndex];
 }

@@ -7,11 +7,16 @@ import {
   TouchableOpacity,
   RefreshControl,
   Dimensions,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
-import { MapPin, Users, Clock, Star, Navigation } from 'lucide-react-native';
+import { MapPin, Users, Clock, Star, Navigation, CircleCheck as CheckCircle, AlertCircle } from 'lucide-react-native';
 import SafetyBanner from '@/components/SafetyBanner';
 import { useVenues, useVenueCheckIn } from '@/hooks/useFirestore';
 import { firestoreService } from '@/services/firestoreService';
+import { useLocationTracking } from '@/hooks/useLocationTracking';
+import { checkProximityToMultipleLocations, VenueProximity, DEFAULT_CAFE } from '@/utils/locationUtils';
+import { geoPointToCoordinates } from '@/utils/firestoreHelpers';
 
 const { width } = Dimensions.get('window');
 
@@ -91,10 +96,52 @@ export default function VenuesScreen() {
   const { venues: firestoreVenues, loading: venuesLoading } = useVenues();
   const { checkIn, checkOut, loading: checkInLoading } = useVenueCheckIn();
   
-  const [venues, setVenues] = useState(mockVenues);
+  // Location tracking for proximity detection
+  const {
+    userLocation,
+    isLoading: locationLoading,
+    error: locationError,
+    permissionStatus,
+    requestPermissions,
+  } = useLocationTracking({
+    cafeLocation: DEFAULT_CAFE,
+    radiusMeters: 60,
+  });
+  
+  const [venuesWithProximity, setVenuesWithProximity] = useState<VenueProximity[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<'all' | 'coffee' | 'bar' | 'restaurant'>('all');
   const [showSafetyBanner, setShowSafetyBanner] = useState(true);
+
+  // Update venues with proximity data when location or venues change
+  useEffect(() => {
+    if (userLocation && firestoreVenues.length > 0) {
+      const venuesWithGeoPoints = firestoreVenues.map(venue => ({
+        ...venue,
+        location: venue.location ? geoPointToCoordinates(venue.location) : DEFAULT_CAFE,
+      }));
+      
+      const proximityData = checkProximityToMultipleLocations(
+        userLocation,
+        venuesWithGeoPoints,
+        60 // 200 feet radius
+      );
+      
+      setVenuesWithProximity(proximityData);
+    } else if (firestoreVenues.length > 0) {
+      // Fallback to mock data with default distances when no location
+      const fallbackData: VenueProximity[] = mockVenues.map(venue => ({
+        id: venue.id,
+        name: venue.name,
+        type: venue.type,
+        address: venue.address,
+        distance: venue.distance * 1000, // Convert km to meters
+        isWithinRadius: venue.isCheckedIn,
+        formattedDistance: `${venue.distance} mi`,
+      }));
+      setVenuesWithProximity(fallbackData);
+    }
+  }, [userLocation, firestoreVenues]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -104,11 +151,11 @@ export default function VenuesScreen() {
     }, 1000);
   };
 
-  const filteredVenues = venues.filter(venue => {
+  const filteredVenues = venuesWithProximity.filter(venue => {
     if (filter === 'all') return true;
-    if (filter === 'coffee') return venue.type === 'Coffee Shop';
+    if (filter === 'coffee') return venue.type === 'Coffee Shop' || venue.type === 'coffee';
     if (filter === 'bar') return venue.type === 'Bar';
-    if (filter === 'restaurant') return venue.type === 'Restaurant';
+    if (filter === 'restaurant') return venue.type === 'Restaurant' || venue.type === 'restaurant';
     return true;
   });
 
@@ -125,7 +172,7 @@ export default function VenuesScreen() {
     ));
   };
 
-  const VenueCard = ({ item }: { item: Venue }) => (
+  const VenueCard = ({ item }: { item: VenueProximity }) => (
     <TouchableOpacity style={styles.venueCard}>
       <View style={styles.venueHeader}>
         <View style={styles.venueInfo}>
@@ -133,28 +180,38 @@ export default function VenuesScreen() {
           <Text style={styles.venueType}>{item.type}</Text>
           <View style={styles.venueLocation}>
             <Navigation size={12} color="#6B7280" />
-            <Text style={styles.venueDistance}>{item.distance} mi away</Text>
+            <Text style={[
+              styles.venueDistance,
+              item.isWithinRadius && styles.venueDistanceNear
+            ]}>
+              {item.formattedDistance} away
+            </Text>
+            {item.isWithinRadius && (
+              <CheckCircle size={12} color="#10B981" style={styles.nearbyIcon} />
+            )}
           </View>
         </View>
         <View style={styles.venueStats}>
-          <View style={styles.ratingContainer}>
-            <Star size={14} color="#F59E0B" fill="#F59E0B" />
-            <Text style={styles.rating}>{item.rating}</Text>
-          </View>
-          <View style={styles.activeUsersContainer}>
-            <Users size={16} color="#E53935" />
-            <Text style={styles.activeUsers}>{item.activeUsers}</Text>
-          </View>
+          {item.isWithinRadius ? (
+            <View style={styles.atVenueContainer}>
+              <CheckCircle size={20} color="#10B981" />
+              <Text style={styles.atVenueText}>You're here!</Text>
+            </View>
+          ) : (
+            <View style={styles.distanceContainer}>
+              <Text style={styles.distanceText}>{item.formattedDistance}</Text>
+            </View>
+          )}
         </View>
       </View>
 
       <Text style={styles.venueAddress}>{item.address}</Text>
 
-      {item.isCheckedIn ? (
+      {item.isWithinRadius ? (
         <View style={styles.checkedInContainer}>
           <View style={styles.checkedInStatus}>
             <View style={styles.checkedInDot} />
-            <Text style={styles.checkedInText}>Checked in until {item.checkInExpiry}</Text>
+            <Text style={styles.checkedInText}>You're at this venue</Text>
           </View>
           <TouchableOpacity 
             style={styles.extendButton}
@@ -169,9 +226,6 @@ export default function VenuesScreen() {
           <TouchableOpacity style={styles.scanButton}>
             <Text style={styles.scanButtonText}>Scan QR Code</Text>
           </TouchableOpacity>
-          {item.lastVisited && (
-            <Text style={styles.lastVisited}>Last visited {item.lastVisited}</Text>
-          )}
         </View>
       )}
     </TouchableOpacity>
@@ -181,8 +235,25 @@ export default function VenuesScreen() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Nearby Venues</Text>
-        <Text style={styles.subtitle}>Discover people at local spots</Text>
+        <Text style={styles.subtitle}>
+          {locationLoading ? 'Getting your location...' : 
+           locationError ? 'Location unavailable' :
+           'Discover people at local spots'}
+        </Text>
       </View>
+
+      {/* Location Permission Request */}
+      {permissionStatus !== 'granted' && !locationLoading && (
+        <View style={styles.permissionContainer}>
+          <AlertCircle size={20} color="#F59E0B" />
+          <Text style={styles.permissionText}>
+            Enable location to see real-time distances to venues
+          </Text>
+          <TouchableOpacity style={styles.permissionButton} onPress={requestPermissions}>
+            <Text style={styles.permissionButtonText}>Enable Location</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       <View style={styles.filterContainer}>
         {[
@@ -211,6 +282,15 @@ export default function VenuesScreen() {
 
       {showSafetyBanner && (
         <SafetyBanner onDismiss={() => setShowSafetyBanner(false)} />
+      )}
+
+      {(locationLoading || venuesLoading) && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#E53935" />
+          <Text style={styles.loadingText}>
+            {locationLoading ? 'Getting your location...' : 'Loading venues...'}
+          </Text>
+        </View>
       )}
 
       <FlatList
@@ -317,8 +397,40 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     marginLeft: 4,
   },
+  venueDistanceNear: {
+    color: '#10B981',
+    fontWeight: '600',
+  },
+  nearbyIcon: {
+    marginLeft: 4,
+  },
   venueStats: {
     alignItems: 'flex-end',
+  },
+  atVenueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#D1FAE5',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  atVenueText: {
+    fontSize: 12,
+    color: '#10B981',
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  distanceContainer: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  distanceText: {
+    fontSize: 12,
+    color: '#6B7280',
+    fontWeight: '600',
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -407,5 +519,43 @@ const styles = StyleSheet.create({
   lastVisited: {
     fontSize: 12,
     color: '#9CA3AF',
+  },
+  permissionContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFBEB',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  permissionText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#92400E',
+    marginLeft: 12,
+  },
+  permissionButton: {
+    backgroundColor: '#F59E0B',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  permissionButtonText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginTop: 12,
   },
 });
