@@ -1,43 +1,46 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { getAuth, connectAuthEmulator, initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import { Platform } from 'react-native';
+import { initializeApp } from "firebase/app";
+import { 
+  getAuth, 
+  initializeAuth, 
+  getReactNativePersistence 
+} from "firebase/auth";
 
-// TODO: Replace with your actual Firebase config
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+
+// AsyncStorage only works in native (Android/iOS), so import safely
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// --- Your Firebase Config ---
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY || "your-api-key",
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN || "ketchup-live.firebaseapp.com",
   projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID || "ketchup-live",
   storageBucket: process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET || "ketchup-live.appspot.com",
   messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:abcdef123456"
+  appId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID || "1:123456789:web:abcdef123456",
+  measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-XXXXXXXXXX"
 };
 
-// Initialize Firebase
+// --- Initialize Firebase ---
 const app = initializeApp(firebaseConfig);
 
-// Initialize Firestore
-export const db = getFirestore(app);
-
-// Initialize Auth with persistence
+// --- Authentication ---
+// On native (iOS/Android) → use AsyncStorage persistence
+// On web → fallback to normal getAuth
 let auth;
-if (Platform.OS === 'web') {
-  auth = getAuth(app);
-} else {
-  // Only import AsyncStorage on native platforms
-  const AsyncStorage = require('@react-native-async-storage/async-storage').default;
+if (typeof window === "undefined") {
+  // Native (no window object)
   auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage)
+    persistence: getReactNativePersistence(AsyncStorage),
   });
+} else {
+  // Web
+  auth = getAuth(app);
 }
 
-export { auth };
+// --- Firestore & Storage ---
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-// Connect to emulators in development (optional)
-if (__DEV__ && Platform.OS === 'web') {
-  // Uncomment these lines if you want to use Firebase emulators in development
-  // connectFirestoreEmulator(db, 'localhost', 8080);
-  // connectAuthEmulator(auth, 'http://localhost:9099');
-}
-
-export default app;
+export { app, auth, db, storage };
