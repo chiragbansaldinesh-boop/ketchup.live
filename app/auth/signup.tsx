@@ -68,17 +68,19 @@ export default function SignupScreen() {
 
     setLoading(true);
     try {
-      // Create Firebase Auth user
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
 
-      // Create Firestore user document
       await firestoreService.createUser({
+        uid: userCredential.user.uid,
+        email: formData.email,
         name: formData.fullName,
-        age: 25, // Default age, can be updated in profile
+        displayName: formData.fullName,
+        photoURL: formData.profilePic,
+        age: 25,
         bio: '',
         photos: formData.profilePic ? [formData.profilePic] : [],
         interests: [],

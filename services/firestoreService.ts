@@ -12,15 +12,19 @@ import {
   limit,
   onSnapshot,
   serverTimestamp,
+  setDoc,
   GeoPoint,
   Timestamp,
 } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+import { db, auth } from '@/config/firebase';
 
 // Types
 export interface FirestoreUser {
-  id: string;
+  uid: string;
+  email: string;
   name: string;
+  displayName?: string;
+  photoURL?: string;
   age: number;
   bio: string;
   photos: string[];
@@ -29,6 +33,7 @@ export interface FirestoreUser {
   currentVenue?: string;
   isOnline: boolean;
   lastSeen: Timestamp;
+  lastLogin: Timestamp;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -76,16 +81,53 @@ export interface FirestoreCheckIn {
 
 class FirestoreService {
   // User operations
-  async createUser(userData: Omit<FirestoreUser, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  async createUser(userData: Omit<FirestoreUser, 'createdAt' | 'updatedAt' | 'lastLogin'>): Promise<string> {
     try {
-      const docRef = await addDoc(collection(db, 'users'), {
+      const userRef = doc(db, 'users', userData.uid);
+      await setDoc(userRef, {
         ...userData,
+        lastLogin: serverTimestamp(),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
-      return docRef.id;
+      return userData.uid;
     } catch (error) {
       console.error('Error creating user:', error);
+      throw error;
+    }
+  }
+
+  async createOrUpdateUser(uid: string, email: string, displayName: string | null, photoURL: string | null): Promise<void> {
+    try {
+      const userRef = doc(db, 'users', uid);
+      const userDoc = await getDoc(userRef);
+
+      if (userDoc.exists()) {
+        await updateDoc(userRef, {
+          lastLogin: serverTimestamp(),
+          isOnline: true,
+          updatedAt: serverTimestamp(),
+        });
+      } else {
+        await setDoc(userRef, {
+          uid,
+          email,
+          name: displayName || email.split('@')[0],
+          displayName: displayName || '',
+          photoURL: photoURL || '',
+          age: 25,
+          bio: '',
+          photos: photoURL ? [photoURL] : [],
+          interests: [],
+          isOnline: true,
+          lastSeen: serverTimestamp(),
+          lastLogin: serverTimestamp(),
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+      }
+    } catch (error) {
+      console.error('Error creating or updating user:', error);
       throw error;
     }
   }

@@ -9,10 +9,13 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/config/firebase';
+import { firestoreService } from '@/services/firestoreService';
+import { googleAuthService } from '@/services/googleAuthService';
 import { router } from 'expo-router';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 
@@ -22,6 +25,7 @@ export default function LoginScreen() {
     password: '',
   });
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -47,17 +51,23 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, formData.email, formData.password);
-      
-      // Navigation will be handled automatically by the auth state listener in _layout.tsx
+      const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+
+      await firestoreService.createOrUpdateUser(
+        userCredential.user.uid,
+        userCredential.user.email || '',
+        userCredential.user.displayName,
+        userCredential.user.photoURL
+      );
+
       Alert.alert('Success', 'Welcome back to Ketchup.live!', [
         { text: 'OK', onPress: () => router.replace('/(tabs)') }
       ]);
     } catch (error: any) {
       console.error('Login error:', error);
-      
+
       let errorMessage = 'An error occurred during login. Please try again.';
-      
+
       switch (error.code) {
         case 'auth/user-not-found':
           errorMessage = 'No account found with this email address.';
@@ -77,10 +87,37 @@ export default function LoginScreen() {
         default:
           errorMessage = error.message || errorMessage;
       }
-      
+
       Alert.alert('Login Failed', errorMessage);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const result = await googleAuthService.signInWithGoogle();
+
+      if (result.success && result.user) {
+        await firestoreService.createOrUpdateUser(
+          result.user.uid,
+          result.user.email || '',
+          result.user.displayName,
+          result.user.photoURL
+        );
+
+        Alert.alert('Success', 'Welcome to Ketchup.live!', [
+          { text: 'OK', onPress: () => router.replace('/(tabs)') }
+        ]);
+      } else {
+        Alert.alert('Sign In Failed', result.error || 'Could not sign in with Google');
+      }
+    } catch (error: any) {
+      console.error('Google Sign-In error:', error);
+      Alert.alert('Sign In Failed', error.message || 'An error occurred during Google Sign-In');
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -163,6 +200,30 @@ export default function LoginScreen() {
                 <ActivityIndicator size="small" color="#FFFFFF" />
               ) : (
                 <Text style={styles.loginButtonText}>Sign In</Text>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>or continue with</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <TouchableOpacity
+              style={[styles.googleButton, googleLoading && styles.googleButtonDisabled]}
+              onPress={handleGoogleSignIn}
+              disabled={googleLoading}
+            >
+              {googleLoading ? (
+                <ActivityIndicator size="small" color="#374151" />
+              ) : (
+                <>
+                  <Image
+                    source={{ uri: 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg' }}
+                    style={styles.googleIcon}
+                  />
+                  <Text style={styles.googleButtonText}>Sign in with Google</Text>
+                </>
               )}
             </TouchableOpacity>
 
@@ -285,6 +346,49 @@ const styles = StyleSheet.create({
   signupLink: {
     fontSize: 16,
     color: '#E53935',
+    fontWeight: '600',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#E5E7EB',
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  googleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 16,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  googleButtonDisabled: {
+    opacity: 0.6,
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 12,
+  },
+  googleButtonText: {
+    color: '#374151',
+    fontSize: 16,
     fontWeight: '600',
   },
 });

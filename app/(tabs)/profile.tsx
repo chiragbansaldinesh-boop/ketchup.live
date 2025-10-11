@@ -1,11 +1,48 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { User, Settings, Heart, MapPin, Camera, CreditCard as Edit3, LogOut } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/config/firebase';
+import { firestoreService } from '@/services/firestoreService';
 
 export default function Profile() {
   const [isOnline, setIsOnline] = useState(true);
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Logout',
+      'Are you sure you want to logout?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Logout',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (auth.currentUser) {
+                await firestoreService.updateUser(auth.currentUser.uid, {
+                  isOnline: false,
+                  lastSeen: new Date() as any,
+                });
+              }
+
+              await signOut(auth);
+              router.replace('/auth/login');
+            } catch (error) {
+              console.error('Logout error:', error);
+              Alert.alert('Error', 'Failed to logout. Please try again.');
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
   
   const userProfile = {
     name: "Alex Johnson",
@@ -133,7 +170,10 @@ export default function Profile() {
             <Text style={styles.actionText}>Settings & Privacy</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={[styles.actionButton, styles.logoutButton]}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.logoutButton]}
+            onPress={handleLogout}
+          >
             <LogOut size={20} color="#ff4444" />
             <Text style={[styles.actionText, { color: '#ff4444' }]}>Logout</Text>
           </TouchableOpacity>
