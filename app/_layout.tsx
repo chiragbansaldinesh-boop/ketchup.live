@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/config/firebase';
+import { User } from '@supabase/supabase-js';
+import { supabaseAuthService } from '@/services/supabaseAuthService';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import { Redirect } from 'expo-router';
 import { ActivityIndicator, View, StyleSheet } from 'react-native';
 
 export default function RootLayout() {
@@ -14,12 +13,18 @@ export default function RootLayout() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    supabaseAuthService.getSession().then((session) => {
+      setUser(session?.user ?? null);
       setIsLoading(false);
     });
 
-    return unsubscribe;
+    const subscription = supabaseAuthService.onAuthStateChange((user) => {
+      setUser(user);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (isLoading) {

@@ -12,10 +12,7 @@ import {
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/config/firebase';
-import { firestoreService } from '@/services/firestoreService';
-import { googleAuthService } from '@/services/googleAuthService';
+import { supabaseAuthService } from '@/services/supabaseAuthService';
 import { router } from 'expo-router';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
 
@@ -51,44 +48,18 @@ export default function LoginScreen() {
 
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      const result = await supabaseAuthService.signIn(formData.email, formData.password);
 
-      await firestoreService.createOrUpdateUser(
-        userCredential.user.uid,
-        userCredential.user.email || '',
-        userCredential.user.displayName,
-        userCredential.user.photoURL
-      );
-
-      Alert.alert('Success', 'Welcome back to Ketchup.live!', [
-        { text: 'OK', onPress: () => router.replace('/(tabs)') }
-      ]);
+      if (result.success) {
+        Alert.alert('Success', 'Welcome back to Ketchup.live!', [
+          { text: 'OK', onPress: () => router.replace('/(tabs)') }
+        ]);
+      } else {
+        Alert.alert('Login Failed', result.error || 'An error occurred during login.');
+      }
     } catch (error: any) {
       console.error('Login error:', error);
-
-      let errorMessage = 'An error occurred during login. Please try again.';
-
-      switch (error.code) {
-        case 'auth/user-not-found':
-          errorMessage = 'No account found with this email address.';
-          break;
-        case 'auth/wrong-password':
-          errorMessage = 'Incorrect password. Please try again.';
-          break;
-        case 'auth/invalid-email':
-          errorMessage = 'Invalid email address.';
-          break;
-        case 'auth/user-disabled':
-          errorMessage = 'This account has been disabled.';
-          break;
-        case 'auth/too-many-requests':
-          errorMessage = 'Too many failed attempts. Please try again later.';
-          break;
-        default:
-          errorMessage = error.message || errorMessage;
-      }
-
-      Alert.alert('Login Failed', errorMessage);
+      Alert.alert('Login Failed', 'An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -97,16 +68,9 @@ export default function LoginScreen() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
-      const result = await googleAuthService.signInWithGoogle();
+      const result = await supabaseAuthService.signInWithGoogle();
 
-      if (result.success && result.user) {
-        await firestoreService.createOrUpdateUser(
-          result.user.uid,
-          result.user.email || '',
-          result.user.displayName,
-          result.user.photoURL
-        );
-
+      if (result.success) {
         Alert.alert('Success', 'Welcome to Ketchup.live!', [
           { text: 'OK', onPress: () => router.replace('/(tabs)') }
         ]);

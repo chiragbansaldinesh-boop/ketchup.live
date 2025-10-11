@@ -12,8 +12,6 @@ import {
 import { Send, MapPin, Gamepad as GamepadIcon, MoveVertical as MoreVertical, Shield, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import BlockUserModal from '@/components/BlockUserModal';
 import { privacyService } from '@/services/privacyService';
-import { useMatches, useMessages } from '@/hooks/useFirestore';
-import { firestoreService } from '@/services/firestoreService';
 
 interface Chat {
   id: string;

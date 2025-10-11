@@ -3,9 +3,8 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Switch, Al
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { User, Settings, Heart, MapPin, Camera, CreditCard as Edit3, LogOut } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { signOut } from 'firebase/auth';
-import { auth } from '@/config/firebase';
-import { firestoreService } from '@/services/firestoreService';
+import { supabaseAuthService } from '@/services/supabaseAuthService';
+import { supabaseDatabaseService } from '@/services/supabaseDatabaseService';
 
 export default function Profile() {
   const [isOnline, setIsOnline] = useState(true);
@@ -24,15 +23,17 @@ export default function Profile() {
           style: 'destructive',
           onPress: async () => {
             try {
-              if (auth.currentUser) {
-                await firestoreService.updateUser(auth.currentUser.uid, {
-                  isOnline: false,
-                  lastSeen: new Date() as any,
-                });
+              const user = await supabaseAuthService.getCurrentUser();
+              if (user) {
+                await supabaseDatabaseService.updateUserOnlineStatus(user.id, false);
               }
 
-              await signOut(auth);
-              router.replace('/auth/login');
+              const result = await supabaseAuthService.signOut();
+              if (result.success) {
+                router.replace('/auth/login');
+              } else {
+                Alert.alert('Error', 'Failed to logout. Please try again.');
+              }
             } catch (error) {
               console.error('Logout error:', error);
               Alert.alert('Error', 'Failed to logout. Please try again.');

@@ -12,9 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/config/firebase';
-import { firestoreService } from '@/services/firestoreService';
+import { supabaseAuthService } from '@/services/supabaseAuthService';
 import { router } from 'expo-router';
 import { User, Mail, Lock, Phone, Camera } from 'lucide-react-native';
 
@@ -68,36 +66,33 @@ export default function SignupScreen() {
 
     setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
+      const result = await supabaseAuthService.signUp(
         formData.email,
-        formData.password
+        formData.password,
+        {
+          full_name: formData.fullName,
+          phone: formData.phone,
+          photo_url: formData.profilePic,
+        }
       );
 
-      await firestoreService.createUser({
-        uid: userCredential.user.uid,
-        email: formData.email,
-        name: formData.fullName,
-        displayName: formData.fullName,
-        photoURL: formData.profilePic,
-        age: 25,
-        bio: '',
-        photos: formData.profilePic ? [formData.profilePic] : [],
-        interests: [],
-        isOnline: true,
-        lastSeen: new Date() as any,
-      });
-
-      Alert.alert(
-        'Success',
-        'Account created successfully! Welcome to Ketchup.live',
-        [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
-      );
+      if (result.success) {
+        Alert.alert(
+          'Success',
+          'Account created successfully! Welcome to Ketchup.live',
+          [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
+        );
+      } else {
+        Alert.alert(
+          'Signup Failed',
+          result.error || 'An error occurred during signup. Please try again.'
+        );
+      }
     } catch (error: any) {
       console.error('Signup error:', error);
       Alert.alert(
         'Signup Failed',
-        error.message || 'An error occurred during signup. Please try again.'
+        'An unexpected error occurred. Please try again.'
       );
     } finally {
       setLoading(false);

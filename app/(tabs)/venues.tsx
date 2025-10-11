@@ -12,11 +12,8 @@ import {
 } from 'react-native';
 import { MapPin, Users, Clock, Star, Navigation, CircleCheck as CheckCircle, AlertCircle } from 'lucide-react-native';
 import SafetyBanner from '@/components/SafetyBanner';
-import { useVenues, useVenueCheckIn } from '@/hooks/useFirestore';
-import { firestoreService } from '@/services/firestoreService';
 import { useLocationTracking } from '@/hooks/useLocationTracking';
 import { checkProximityToMultipleLocations, VenueProximity, DEFAULT_CAFE } from '@/utils/locationUtils';
-import { geoPointToCoordinates } from '@/utils/firestoreHelpers';
 
 const { width } = Dimensions.get('window');
 
@@ -90,11 +87,7 @@ const mockVenues: Venue[] = [
 ];
 
 export default function VenuesScreen() {
-  // TODO: Replace with actual user ID from authentication
   const currentUserId = 'current-user-id';
-  
-  const { venues: firestoreVenues, loading: venuesLoading } = useVenues();
-  const { checkIn, checkOut, loading: checkInLoading } = useVenueCheckIn();
   
   // Location tracking for proximity detection
   const {
@@ -113,35 +106,36 @@ export default function VenuesScreen() {
   const [filter, setFilter] = useState<'all' | 'coffee' | 'bar' | 'restaurant'>('all');
   const [showSafetyBanner, setShowSafetyBanner] = useState(true);
 
-  // Update venues with proximity data when location or venues change
   useEffect(() => {
-    if (userLocation && firestoreVenues.length > 0) {
-      const venuesWithGeoPoints = firestoreVenues.map(venue => ({
-        ...venue,
-        location: venue.location ? geoPointToCoordinates(venue.location) : DEFAULT_CAFE,
+    if (userLocation) {
+      const venuesWithGeoPoints = mockVenues.map(venue => ({
+        id: venue.id,
+        name: venue.name,
+        type: venue.type,
+        address: venue.address,
+        location: DEFAULT_CAFE,
       }));
-      
+
       const proximityData = checkProximityToMultipleLocations(
         userLocation,
         venuesWithGeoPoints,
-        60 // 200 feet radius
+        60
       );
-      
+
       setVenuesWithProximity(proximityData);
-    } else if (firestoreVenues.length > 0) {
-      // Fallback to mock data with default distances when no location
+    } else {
       const fallbackData: VenueProximity[] = mockVenues.map(venue => ({
         id: venue.id,
         name: venue.name,
         type: venue.type,
         address: venue.address,
-        distance: venue.distance * 1000, // Convert km to meters
+        distance: venue.distance * 1000,
         isWithinRadius: venue.isCheckedIn,
         formattedDistance: `${venue.distance} mi`,
       }));
       setVenuesWithProximity(fallbackData);
     }
-  }, [userLocation, firestoreVenues]);
+  }, [userLocation]);
 
   const onRefresh = () => {
     setRefreshing(true);
