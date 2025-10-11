@@ -2,29 +2,29 @@
 
 ## Overview
 
-This app uses **Firebase Authentication** with two sign-in methods:
+This app uses **Supabase Authentication** with two sign-in methods:
 1. **Email/Password** - Traditional authentication
 2. **Google Sign-In** - OAuth via Expo AuthSession
 
-All user data is stored in **Cloud Firestore**.
+All user data is stored in **Supabase PostgreSQL database**.
 
 ## File Structure
 
 ```
 project/
 ├── config/
-│   └── firebase.ts                 # Firebase initialization
+│   └── supabase.ts                  # Supabase initialization
 ├── services/
-│   ├── firestoreService.ts         # Firestore CRUD operations
-│   └── googleAuthService.ts        # Google OAuth handler
+│   ├── supabaseDatabaseService.ts   # Database CRUD operations
+│   └── supabaseAuthService.ts       # Authentication handler
 ├── app/
-│   ├── _layout.tsx                 # Auth state management
+│   ├── _layout.tsx                  # Auth state management
 │   ├── auth/
-│   │   ├── login.tsx               # Login screen
-│   │   └── signup.tsx              # Signup screen
+│   │   ├── login.tsx                # Login screen
+│   │   └── signup.tsx               # Signup screen
 │   └── (tabs)/
-│       └── profile.tsx             # Profile with logout
-└── .env                            # Environment variables
+│       └── profile.tsx              # Profile with logout
+└── .env                             # Environment variables
 ```
 
 ## Key Features
@@ -33,17 +33,17 @@ project/
 - Email/password registration and login
 - Google Sign-In with OAuth 2.0
 - Automatic session persistence
-- Secure logout with Firestore update
+- Secure logout with database update
 
 ### ✅ User Data Management
-- Automatic Firestore user document creation
-- First-time login: Creates new user record
-- Subsequent logins: Updates `lastLogin` timestamp
-- Logout: Updates `isOnline` and `lastSeen` fields
+- Automatic profile creation in database
+- First-time login: Creates new profile record
+- Subsequent logins: Updates `last_seen` timestamp
+- Logout: Updates `is_online` and `last_seen` fields
 
 ### ✅ Security
-- Firebase Authentication handles password security
-- Firestore security rules restrict data access
+- Supabase handles password security
+- Row Level Security (RLS) policies restrict data access
 - Client-side form validation
 - Error handling for all auth operations
 
@@ -54,7 +54,7 @@ project/
 ```
 User opens app
     ↓
-Check auth state (onAuthStateChanged)
+Check auth state (onAuthStateChange)
     ↓
 ┌─────────────┬─────────────┐
 │ Not signed  │   Signed    │
@@ -66,7 +66,7 @@ Login/Signup    Home Screen
       ↓
   Sign In
       ↓
-Create/Update Firestore user
+Create/Update profile in database
       ↓
   Navigate to Home
 ```
@@ -76,8 +76,8 @@ Create/Update Firestore user
 **Email/Password Login:**
 ```javascript
 // 1. User enters email and password
-// 2. Call Firebase signInWithEmailAndPassword()
-// 3. On success, update Firestore user document
+// 2. Call Supabase signInWithPassword()
+// 3. On success, profile is automatically linked
 // 4. Navigate to home screen
 ```
 
@@ -86,11 +86,10 @@ Create/Update Firestore user
 // 1. User clicks "Sign in with Google"
 // 2. Expo AuthSession opens Google OAuth flow
 // 3. User authorizes in browser
-// 4. Receive ID token from Google
-// 5. Exchange token for Firebase credential
-// 6. Sign in to Firebase with credential
-// 7. Create/update Firestore user document
-// 8. Navigate to home screen
+// 4. Receive authorization code from Google
+// 5. Exchange for Supabase session
+// 6. Create/update profile in database
+// 7. Navigate to home screen
 ```
 
 ### 3. Signup Process
@@ -98,8 +97,8 @@ Create/Update Firestore user
 ```javascript
 // 1. User fills registration form
 // 2. Validate input (email format, password strength, etc.)
-// 3. Call Firebase createUserWithEmailAndPassword()
-// 4. Create Firestore user document with profile data
+// 3. Call Supabase signUp()
+// 4. Create profile in database with user data
 // 5. Navigate to home screen
 ```
 
@@ -108,47 +107,54 @@ Create/Update Firestore user
 ```javascript
 // 1. User clicks logout button
 // 2. Show confirmation dialog
-// 3. Update Firestore: isOnline = false, lastSeen = now
-// 4. Call Firebase signOut()
+// 3. Update database: is_online = false, last_seen = now
+// 4. Call Supabase signOut()
 // 5. Navigate to login screen
 ```
 
 ## Code Examples
 
-### Initialize Firebase
+### Initialize Supabase
 
 ```typescript
-// config/firebase.ts
-import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+// config/supabase.ts
+import 'react-native-url-polyfill/auto';
+import { createClient } from '@supabase/supabase-js';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
-const firebaseConfig = {
-  apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
-  // ... other config
-};
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: AsyncStorage,
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: Platform.OS === 'web',
+  },
+});
 ```
 
 ### Check Auth State
 
 ```typescript
 // app/_layout.tsx
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/config/firebase';
+import { supabaseAuthService } from '@/services/supabaseAuthService';
 
 useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    setUser(user);
+  supabaseAuthService.getSession().then((session) => {
+    setUser(session?.user ?? null);
     setIsLoading(false);
   });
 
-  return unsubscribe;
+  const subscription = supabaseAuthService.onAuthStateChange((user) => {
+    setUser(user);
+  });
+
+  return () => {
+    subscription.unsubscribe();
+  };
 }, []);
 ```
 
@@ -156,21 +162,20 @@ useEffect(() => {
 
 ```typescript
 // app/auth/login.tsx
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { supabaseAuthService } from '@/services/supabaseAuthService';
 
 const handleLogin = async () => {
-  const userCredential = await signInWithEmailAndPassword(
-    auth,
-    email,
-    password
+  const result = await supabaseAuthService.signIn(
+    formData.email,
+    formData.password
   );
 
-  await firestoreService.createOrUpdateUser(
-    userCredential.user.uid,
-    userCredential.user.email,
-    userCredential.user.displayName,
-    userCredential.user.photoURL
-  );
+  if (result.success) {
+    Alert.alert('Success', 'Welcome back!');
+    router.replace('/(tabs)');
+  } else {
+    Alert.alert('Login Failed', result.error);
+  }
 };
 ```
 
@@ -178,53 +183,51 @@ const handleLogin = async () => {
 
 ```typescript
 // app/auth/login.tsx
-import { googleAuthService } from '@/services/googleAuthService';
+import { supabaseAuthService } from '@/services/supabaseAuthService';
 
 const handleGoogleSignIn = async () => {
-  const result = await googleAuthService.signInWithGoogle();
+  const result = await supabaseAuthService.signInWithGoogle();
 
-  if (result.success && result.user) {
-    await firestoreService.createOrUpdateUser(
-      result.user.uid,
-      result.user.email,
-      result.user.displayName,
-      result.user.photoURL
-    );
+  if (result.success) {
+    Alert.alert('Success', 'Welcome!');
+    router.replace('/(tabs)');
+  } else {
+    Alert.alert('Sign In Failed', result.error);
   }
 };
 ```
 
-### Create/Update User in Firestore
+### Create User Profile
 
 ```typescript
-// services/firestoreService.ts
-async createOrUpdateUser(
-  uid: string,
+// services/supabaseAuthService.ts
+private async createUserProfile(
+  userId: string,
   email: string,
-  displayName: string | null,
-  photoURL: string | null
-) {
-  const userRef = doc(db, 'users', uid);
-  const userDoc = await getDoc(userRef);
-
-  if (userDoc.exists()) {
-    // Update existing user
-    await updateDoc(userRef, {
-      lastLogin: serverTimestamp(),
-      isOnline: true,
-      updatedAt: serverTimestamp(),
-    });
-  } else {
-    // Create new user
-    await setDoc(userRef, {
-      uid,
-      email,
-      name: displayName || email.split('@')[0],
-      photoURL: photoURL || '',
-      // ... other fields
-      createdAt: serverTimestamp(),
-    });
+  metadata?: {
+    full_name?: string;
+    phone?: string;
+    photo_url?: string;
   }
+): Promise<void> {
+  const { error } = await supabase.from('profiles').upsert(
+    {
+      id: userId,
+      email: email,
+      full_name: metadata?.full_name || '',
+      display_name: metadata?.full_name || '',
+      phone: metadata?.phone || '',
+      photo_url: metadata?.photo_url || '',
+      photos: metadata?.photo_url ? [metadata.photo_url] : [],
+      is_online: true,
+      last_seen: new Date().toISOString(),
+    },
+    {
+      onConflict: 'id',
+    }
+  );
+
+  if (error) throw error;
 }
 ```
 
@@ -232,20 +235,16 @@ async createOrUpdateUser(
 
 ```typescript
 // app/(tabs)/profile.tsx
-import { signOut } from 'firebase/auth';
+import { supabaseAuthService } from '@/services/supabaseAuthService';
 
 const handleLogout = async () => {
-  // Update Firestore
-  await firestoreService.updateUser(auth.currentUser.uid, {
-    isOnline: false,
-    lastSeen: new Date(),
-  });
+  const result = await supabaseAuthService.signOut();
 
-  // Sign out from Firebase
-  await signOut(auth);
-
-  // Navigate to login
-  router.replace('/auth/login');
+  if (result.success) {
+    router.replace('/auth/login');
+  } else {
+    Alert.alert('Error', result.error);
+  }
 };
 ```
 
@@ -254,82 +253,84 @@ const handleLogout = async () => {
 Required variables in `.env`:
 
 ```bash
-# Firebase Config (from Firebase Console)
-EXPO_PUBLIC_FIREBASE_API_KEY=
-EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=
-EXPO_PUBLIC_FIREBASE_PROJECT_ID=
-EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=
-EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-EXPO_PUBLIC_FIREBASE_APP_ID=
-
-# Google OAuth (from Firebase Console → Authentication → Google)
-EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
+# Supabase Config (from Supabase Dashboard)
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-## Firestore Collections
+## Database Tables
 
-### `users` Collection
+### `profiles` Table
 
-Document ID: Firebase UID
+Linked to `auth.users` via foreign key
 
-```javascript
+```sql
 {
-  uid: string,              // Firebase user ID
-  email: string,            // User email
-  name: string,             // Display name
-  displayName: string,      // Full display name
-  photoURL: string,         // Profile photo URL
-  age: number,              // User age
-  bio: string,              // User bio
-  photos: string[],         // Array of photo URLs
-  interests: string[],      // User interests
-  location: GeoPoint,       // Current location (optional)
-  currentVenue: string,     // Current venue ID (optional)
-  isOnline: boolean,        // Online status
-  lastSeen: Timestamp,      // Last activity timestamp
-  lastLogin: Timestamp,     // Last login timestamp
-  createdAt: Timestamp,     // Account creation timestamp
-  updatedAt: Timestamp      // Last update timestamp
+  id: uuid,                    -- Links to auth.users(id)
+  email: text,                 -- User email
+  full_name: text,             -- Full name
+  display_name: text,          -- Display name
+  phone: text,                 -- Phone number
+  photo_url: text,             -- Profile photo URL
+  bio: text,                   -- User bio
+  age: integer,                -- User age
+  interests: text[],           -- Array of interests
+  photos: text[],              -- Array of photo URLs
+  is_online: boolean,          -- Online status
+  last_seen: timestamptz,      -- Last activity timestamp
+  created_at: timestamptz,     -- Account creation
+  updated_at: timestamptz      -- Last update
 }
 ```
 
-### Other Collections
+### Other Tables
 
-- `venues` - Venue information
-- `checkIns` - User check-ins at venues
-- `matches` - User matches
-- `messages` - Chat messages
+- `blocked_users` - Blocked user relationships
+- `hidden_venues` - Hidden venue preferences
+- More to be added for matches, messages, etc.
 
-See `services/firestoreService.ts` for complete data models.
+## Row Level Security (RLS)
 
-## Security Rules
+### Profile Policies
 
-Firestore security rules ensure:
-- Users can only read/write their own data
-- Authenticated access required for all operations
-- Matches and messages restricted to participants
+```sql
+-- Users can view their own profile
+CREATE POLICY "Users can view their own profile"
+  ON profiles FOR SELECT
+  TO authenticated
+  USING (auth.uid() = id);
 
-Example rule:
+-- Users can view other profiles
+CREATE POLICY "Users can view other profiles"
+  ON profiles FOR SELECT
+  TO authenticated
+  USING (true);
 
-```javascript
-match /users/{userId} {
-  allow read: if request.auth != null;
-  allow write: if request.auth != null && request.auth.uid == userId;
-}
+-- Users can update their own profile
+CREATE POLICY "Users can update their own profile"
+  ON profiles FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
+
+-- Users can insert their own profile
+CREATE POLICY "Users can insert their own profile"
+  ON profiles FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = id);
 ```
 
 ## Error Handling
 
-Common Firebase auth errors:
+Common Supabase auth errors:
 
-| Error Code | Meaning | User Message |
-|------------|---------|--------------|
-| `auth/email-already-in-use` | Email registered | "This email is already registered" |
-| `auth/user-not-found` | No account exists | "No account found with this email" |
-| `auth/wrong-password` | Incorrect password | "Incorrect password" |
-| `auth/weak-password` | Password too short | "Password must be at least 6 characters" |
-| `auth/invalid-email` | Invalid email format | "Invalid email address" |
-| `auth/too-many-requests` | Rate limited | "Too many attempts. Try again later" |
+| Error Message | Meaning | User Message |
+|--------------|---------|--------------|
+| `user already registered` | Email in use | "An account with this email already exists" |
+| `invalid login credentials` | Wrong email/password | "Invalid email or password" |
+| `email not confirmed` | Email not verified | "Please verify your email address" |
+| `invalid email` | Bad email format | "Invalid email address" |
+| `password` errors | Weak password | "Password must be at least 6 characters" |
 
 ## Testing
 
@@ -337,57 +338,84 @@ Common Firebase auth errors:
 1. Go to signup screen
 2. Fill in the form
 3. Click "Create Account"
-4. Check Firestore for new user document
-5. Logout and login again
-6. Verify `lastLogin` is updated
+4. Check Supabase Dashboard → Authentication → Users
+5. Check Table Editor → profiles for new profile
+6. Logout and login again
+7. Verify `last_seen` is updated
 
 ### Test Google Sign-In
 1. Go to login screen
 2. Click "Sign in with Google"
 3. Complete Google OAuth flow
-4. Check Firestore for user document
+4. Check Supabase Dashboard for user
 5. Verify profile photo and name are saved
 
 ### Test Logout
 1. Click logout from profile
 2. Verify confirmation dialog appears
 3. Confirm logout
-4. Check Firestore: `isOnline` should be `false`
+4. Check database: `is_online` should be `false`
 5. Verify redirect to login screen
 
 ## Troubleshooting
 
 ### Google Sign-In fails
-- Check `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` is set
-- Verify Web Client ID is from Firebase Console
-- Restart Expo dev server after adding env var
+- Configure Google OAuth in Supabase Dashboard
+- Go to Authentication → Providers → Google
+- Add Google Client ID and Secret
+- Restart Expo dev server
 
-### Firestore permission denied
-- Check security rules in Firebase Console
+### Database permission denied
+- Check RLS policies in Supabase Dashboard
 - Verify user is authenticated
 - Ensure user is accessing their own data
+- Review Supabase logs for detailed errors
 
 ### User not navigating after login
 - Check auth state listener in `_layout.tsx`
-- Verify Firestore operation completes successfully
+- Verify profile creation completes successfully
 - Check for JavaScript errors in console
+- Ensure environment variables are loaded
+
+### Session not persisting
+- Verify AsyncStorage is installed
+- Check that `persistSession: true` in config
+- Clear app data and try again
 
 ## Production Checklist
 
 Before deploying:
 
-- [ ] Update Firestore security rules to production mode
-- [ ] Configure OAuth consent screen in Google Cloud
-- [ ] Add authorized domains in Firebase settings
+- [ ] Review Row Level Security policies
+- [ ] Configure OAuth providers in Supabase Dashboard
+- [ ] Set up custom domain (optional)
 - [ ] Enable email verification (optional)
 - [ ] Set up error tracking (Sentry, etc.)
 - [ ] Test on real devices
 - [ ] Add loading states for better UX
 - [ ] Implement password reset flow
-- [ ] Add rate limiting for auth attempts
+- [ ] Configure rate limiting
 
 ## Additional Resources
 
-- [Firebase Auth Documentation](https://firebase.google.com/docs/auth)
+- [Supabase Auth Documentation](https://supabase.com/docs/guides/auth)
 - [Expo AuthSession Docs](https://docs.expo.dev/versions/latest/sdk/auth-session/)
-- [Firestore Documentation](https://firebase.google.com/docs/firestore)
+- [Supabase Row Level Security](https://supabase.com/docs/guides/auth/row-level-security)
+- [Supabase JS Client](https://supabase.com/docs/reference/javascript/introduction)
+
+## Summary
+
+Authentication in this app:
+- Uses Supabase for secure authentication
+- Supports email/password and Google OAuth
+- Sessions stored in AsyncStorage
+- Auto-refreshing tokens
+- Row Level Security protects user data
+- Profiles automatically created on signup
+
+For implementation details, see:
+- `config/supabase.ts`
+- `services/supabaseAuthService.ts`
+- `app/_layout.tsx`
+- `app/auth/login.tsx`
+- `app/auth/signup.tsx`

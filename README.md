@@ -4,8 +4,8 @@ A React Native mobile app built with Expo that enables users to connect with peo
 
 ## Features
 
-- **Firebase Authentication** with Email/Password and Google Sign-In
-- **Cloud Firestore** for user data and real-time updates
+- **Supabase Authentication** with Email/Password and Google Sign-In
+- **Supabase Database** for user data and real-time updates
 - **Location-based matching** - Connect with people at the same venues
 - **Real-time chat** between matched users
 - **Venue check-ins** with QR code scanning
@@ -21,13 +21,13 @@ Follow the [**QUICK_START.md**](./QUICK_START.md) guide for a fast setup.
 
 ### Detailed Setup
 
-For comprehensive instructions, see [**FIREBASE_SETUP.md**](./FIREBASE_SETUP.md).
+The app is pre-configured with Supabase. Your database tables are already set up and ready to use.
 
 ### Prerequisites
 
 - Node.js 18+ and npm
 - Expo CLI (`npm install -g expo-cli`)
-- A Firebase account (free tier works)
+- A Supabase account (free tier works)
 - iOS Simulator (Mac only) or Android Emulator, or physical device with Expo Go
 
 ### Installation
@@ -42,7 +42,7 @@ For comprehensive instructions, see [**FIREBASE_SETUP.md**](./FIREBASE_SETUP.md)
    cp .env.example .env
    ```
 
-3. Configure Firebase (see [QUICK_START.md](./QUICK_START.md))
+3. Configure Supabase (see [QUICK_START.md](./QUICK_START.md))
 
 4. Start the development server:
    ```bash
@@ -52,7 +52,6 @@ For comprehensive instructions, see [**FIREBASE_SETUP.md**](./FIREBASE_SETUP.md)
 ## Documentation
 
 - [**QUICK_START.md**](./QUICK_START.md) - Get running in 10 minutes
-- [**FIREBASE_SETUP.md**](./FIREBASE_SETUP.md) - Complete Firebase setup guide
 - [**AUTHENTICATION_GUIDE.md**](./AUTHENTICATION_GUIDE.md) - How authentication works
 - [**DEBUG_GUIDE.md**](./DEBUG_GUIDE.md) - Debugging tips
 
@@ -67,11 +66,11 @@ project/
 │   └── _layout.tsx        # Root layout with auth state
 ├── components/            # Reusable React components
 ├── config/               # Configuration files
-│   └── firebase.ts       # Firebase initialization
+│   └── supabase.ts       # Supabase initialization
 ├── services/             # Business logic
-│   ├── firestoreService.ts    # Firestore operations
-│   ├── googleAuthService.ts   # Google OAuth
-│   └── privacyService.ts      # Privacy controls
+│   ├── supabaseDatabaseService.ts  # Database operations
+│   ├── supabaseAuthService.ts      # Authentication
+│   └── privacyService.ts           # Privacy controls
 ├── hooks/                # Custom React hooks
 ├── types/                # TypeScript type definitions
 └── utils/                # Helper functions
@@ -81,7 +80,7 @@ project/
 
 - **Framework:** React Native with Expo SDK 53
 - **Navigation:** Expo Router
-- **Backend:** Firebase (Authentication + Firestore)
+- **Backend:** Supabase (Authentication + PostgreSQL Database)
 - **OAuth:** Expo AuthSession
 - **State Management:** React hooks
 - **Location:** Expo Location
@@ -90,47 +89,48 @@ project/
 
 ## Authentication
 
-This app uses Firebase Authentication with two methods:
+This app uses Supabase Authentication with two methods:
 
 1. **Email/Password** - Traditional authentication
 2. **Google Sign-In** - OAuth 2.0 via Expo AuthSession
 
-All user data is automatically synced to Cloud Firestore.
+All user data is automatically synced to Supabase PostgreSQL database.
 
 ### How It Works
 
 ```
 User Sign-In
     ↓
-Firebase Authentication
+Supabase Authentication
     ↓
-Create/Update Firestore User Document
+Create/Update Profile in Database
     ↓
 {
-  uid: string,
+  id: uuid,
   email: string,
-  name: string,
-  photoURL: string,
-  lastLogin: Timestamp,
+  full_name: string,
+  photo_url: string,
+  last_seen: timestamp,
   ...
 }
 ```
 
 For implementation details, see [AUTHENTICATION_GUIDE.md](./AUTHENTICATION_GUIDE.md).
 
-## Firestore Data Structure
+## Database Structure
 
-### Collections
+### Tables
 
-- `users` - User profiles and settings
-- `venues` - Venue information
-- `checkIns` - Active venue check-ins
-- `matches` - User matches
-- `messages` - Chat messages between matches
+- `profiles` - User profiles and settings
+- `blocked_users` - Blocked user relationships
+- `hidden_venues` - Hidden venue preferences
+- `venues` - Venue information (to be created)
+- `matches` - User matches (to be created)
+- `messages` - Chat messages between matches (to be created)
 
-### Security Rules
+### Security
 
-Firestore security rules ensure:
+Row Level Security (RLS) policies ensure:
 - Users can only access their own data
 - Matches are visible only to participants
 - All operations require authentication
@@ -140,16 +140,9 @@ Firestore security rules ensure:
 Required in `.env`:
 
 ```bash
-# Firebase Configuration
-EXPO_PUBLIC_FIREBASE_API_KEY=
-EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=
-EXPO_PUBLIC_FIREBASE_PROJECT_ID=
-EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=
-EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
-EXPO_PUBLIC_FIREBASE_APP_ID=
-
-# Google OAuth
-EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=
+# Supabase Configuration
+EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 See `.env.example` for the complete list.
@@ -167,7 +160,7 @@ See `.env.example` for the complete list.
 - Email/password signup and login
 - Google Sign-In with OAuth 2.0
 - Automatic session persistence
-- Secure logout with Firestore updates
+- Secure logout with database updates
 
 ### User Management
 - Profile creation with photos and bio
@@ -206,18 +199,16 @@ See `.env.example` for the complete list.
 
 ### Google Sign-In Not Working
 
-**Error:** "Web Client ID not configured"
-
 **Solution:**
-- Add `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` to `.env`
+- Configure Google OAuth in Supabase Dashboard
 - Restart Expo dev server
 
-### Firestore Permission Denied
+### Database Permission Denied
 
 **Error:** "Missing or insufficient permissions"
 
 **Solution:**
-- Check Firestore security rules
+- Verify Row Level Security policies are enabled
 - Ensure user is authenticated
 - Verify user is accessing their own data
 
@@ -235,9 +226,9 @@ For more issues, see [DEBUG_GUIDE.md](./DEBUG_GUIDE.md).
 Before deploying to production:
 
 1. **Security:**
-   - Update Firestore security rules to production mode
-   - Configure OAuth consent screen in Google Cloud Console
-   - Add authorized domains in Firebase settings
+   - Review Row Level Security policies
+   - Configure OAuth providers in Supabase Dashboard
+   - Set up custom domain (optional)
 
 2. **Features:**
    - Enable email verification (optional)
@@ -246,8 +237,8 @@ Before deploying to production:
 
 3. **Monitoring:**
    - Set up error tracking (e.g., Sentry)
-   - Enable Firebase Analytics
-   - Monitor auth metrics in Firebase Console
+   - Monitor database performance
+   - Review authentication logs in Supabase Dashboard
 
 4. **Testing:**
    - Test on real iOS and Android devices
@@ -265,12 +256,12 @@ Proprietary - All rights reserved
 ## Support
 
 - Check the documentation guides in this repository
-- Review Firebase Console for backend issues
+- Review Supabase Dashboard for backend issues
 - Check browser/device console for client errors
 
 ## Acknowledgments
 
 - Built with [Expo](https://expo.dev/)
-- Authentication by [Firebase](https://firebase.google.com/)
+- Backend by [Supabase](https://supabase.com/)
 - Icons from [Lucide](https://lucide.dev/)
 - Stock photos from [Pexels](https://pexels.com/)

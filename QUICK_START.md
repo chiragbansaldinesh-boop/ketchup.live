@@ -1,81 +1,37 @@
-# Quick Start Guide - Firebase Authentication
+# Quick Start Guide - Supabase Setup
 
-Get your app running with Firebase Authentication in 10 minutes!
+Get your Ketchup Live app running in 10 minutes!
 
-## Step 1: Install Dependencies (Already Done!)
+## Current Status
 
-The following packages are already installed:
-- `firebase` - Firebase JavaScript SDK
-- `expo-auth-session` - OAuth authentication
-- `expo-crypto` - Cryptographic operations
-- `expo-web-browser` - In-app browser for OAuth
+Your app is already configured with Supabase and the database tables are set up. You're ready to start using the app!
 
-## Step 2: Create Firebase Project (5 minutes)
+## What's Already Done
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Click **"Add project"**
-3. Enter project name: `ketchup-live` (or your choice)
-4. Disable Google Analytics (optional, you can enable later)
-5. Click **"Create project"**
+- Supabase project is created and connected
+- Database tables are created (profiles, blocked_users, hidden_venues)
+- Row Level Security (RLS) policies are enabled
+- Authentication is configured
+- Environment variables are set
 
-## Step 3: Add Web App to Firebase
+## Getting Started
 
-1. In your new Firebase project, click the **Web icon** `</>`
-2. Register app name: `Ketchup Live`
-3. Click **"Register app"**
-4. **COPY** the config object that appears
-
-## Step 4: Enable Authentication Methods
-
-### Enable Email/Password
-
-1. Click **Authentication** in left sidebar
-2. Click **"Get started"** (if first time)
-3. Go to **"Sign-in method"** tab
-4. Click **"Email/Password"**
-5. Toggle **"Enable"** ON
-6. Click **"Save"**
-
-### Enable Google Sign-In
-
-1. Still in **"Sign-in method"** tab
-2. Click **"Google"**
-3. Toggle **"Enable"** ON
-4. Select support email from dropdown
-5. Click **"Save"**
-6. **COPY** the **"Web client ID"** (you'll need this!)
-
-## Step 5: Enable Firestore
-
-1. Click **Firestore Database** in left sidebar
-2. Click **"Create database"**
-3. Choose **"Start in test mode"**
-4. Select your region (choose closest to your users)
-5. Click **"Enable"**
-
-## Step 6: Configure Your App
-
-1. Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-
-2. Open `.env` and paste your values:
+### Step 1: Install Dependencies
 
 ```bash
-# From Step 3 (Firebase config object)
-EXPO_PUBLIC_FIREBASE_API_KEY=AIzaSy...
-EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-EXPO_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
-EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=123456789
-EXPO_PUBLIC_FIREBASE_APP_ID=1:123456789:web:abc...
-
-# From Step 4 (Google Sign-in Web Client ID)
-EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=123...apps.googleusercontent.com
+npm install
 ```
 
-## Step 7: Start Your App
+### Step 2: Verify Configuration
+
+Your `.env` file should already contain:
+
+```bash
+EXPO_PUBLIC_SUPABASE_URL=https://dhjwbdspacnppawlbasq.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Step 3: Start the Development Server
 
 ```bash
 npm start
@@ -83,128 +39,181 @@ npm start
 
 Press `w` for web, `i` for iOS simulator, or `a` for Android emulator.
 
-## Step 8: Test Authentication
+## Test Your App
 
-### Test Signup
+### Create an Account
 1. Open the app
-2. Click **"Create Account"**
-3. Fill in the form
-4. Click **"Create Account"**
+2. Click "Create Account"
+3. Fill in your email and password
+4. Click "Create Account"
 5. You should see a success message!
 
-### Test Google Sign-In
+### Test Login
 1. Go back to login screen
-2. Click **"Sign in with Google"**
-3. Choose a Google account
-4. Authorize the app
-5. You should be logged in!
+2. Enter your credentials
+3. Click "Sign In"
+4. You should be logged in!
 
-### Verify in Firebase
-1. Go to Firebase Console
-2. Click **Authentication** → **Users**
-3. You should see your new users!
-4. Click **Firestore Database**
-5. Check the `users` collection - your user data is there!
+### Verify in Supabase Dashboard
 
-## That's It!
+1. Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. Select your project
+3. Click **Authentication** → **Users**
+4. You should see your new user!
+5. Click **Table Editor** → **profiles**
+6. Your user profile data is there!
 
-You now have a fully functional authentication system with:
-- ✅ Email/password registration
-- ✅ Google Sign-In
-- ✅ User data stored in Firestore
-- ✅ Secure logout
-- ✅ Session persistence
+## Understanding Your Setup
 
-## What's Next?
+### Database Tables
 
-### Improve Security (Recommended)
+#### profiles
+Stores user profile information:
+- id (uuid) - Links to auth.users
+- email, full_name, display_name
+- photo_url, bio, age
+- interests (array)
+- is_online, last_seen
+- created_at, updated_at
 
-Update Firestore rules for production:
+#### blocked_users
+Tracks blocked user relationships:
+- user_id - Who blocked
+- blocked_user_id - Who was blocked
 
-1. Go to **Firestore Database** → **Rules**
-2. Replace with:
+#### hidden_venues
+Stores hidden venue preferences:
+- user_id - User who hid the venue
+- venue_id - Venue identifier
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
-    }
-  }
-}
+### Security
+
+All tables have Row Level Security (RLS) enabled:
+- Users can only access their own data
+- Authentication is required for all operations
+- Policies enforce data privacy
+
+## Supabase Dashboard Quick Tour
+
+```
+Supabase Dashboard (supabase.com/dashboard)
+│
+├── Project Overview
+│   └── View project stats and API keys
+│
+├── Authentication
+│   ├── Users → View registered users
+│   ├── Policies → Configure auth settings
+│   └── Providers → Enable OAuth (Google, etc.)
+│
+├── Table Editor
+│   └── View and edit database tables
+│
+├── SQL Editor
+│   └── Run custom SQL queries
+│
+└── API Docs
+    └── Auto-generated API documentation
 ```
 
-3. Click **"Publish"**
+## Next Steps
+
+### Enable Google Sign-In (Optional)
+
+1. Go to Supabase Dashboard
+2. Click **Authentication** → **Providers**
+3. Click **Google**
+4. Follow the instructions to set up Google OAuth
+5. Copy the callback URL and configure in Google Cloud Console
 
 ### Add More Features
 
-Check out these guides:
-- `FIREBASE_SETUP.md` - Complete setup guide
-- `AUTHENTICATION_GUIDE.md` - Implementation details
-- `README.md` - App overview
+The basic structure is ready. You can now:
+- Add venue management features
+- Implement chat functionality
+- Add photo upload with Supabase Storage
+- Enable real-time updates with Supabase Realtime
 
 ## Troubleshooting
 
-**Problem:** Google Sign-In shows error
+### App Won't Start
 
 **Solution:**
-- Make sure `EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID` is in `.env`
-- Restart Expo dev server: `npm start`
+- Run `npm install` to ensure all dependencies are installed
+- Delete `node_modules` and `package-lock.json`, then run `npm install`
+- Clear Expo cache: `npm start -- --clear`
 
-**Problem:** "Permission denied" in Firestore
-
-**Solution:**
-- Check Firestore rules allow authenticated users
-- Make sure user is logged in
-
-**Problem:** Config not found
+### Authentication Errors
 
 **Solution:**
-- Check all variables in `.env` match `.env.example`
-- No quotes needed around values in `.env`
-- Restart Expo dev server after changing `.env`
+- Verify `.env` file exists and has correct values
+- Restart the development server
+- Check Supabase Dashboard for authentication errors
 
-## Need Help?
+### Database Permission Errors
 
-1. Check the detailed guides in the project root
-2. Review Firebase Console for error messages
-3. Check browser console for JavaScript errors
-4. Verify all environment variables are set
+**Solution:**
+- Verify you're logged in
+- Check that RLS policies are enabled
+- Review policies in Supabase Dashboard
 
-## Visual Guide - Where to Find Things
-
-### Firebase Console Navigation
-
-```
-Firebase Console (console.firebase.google.com)
-│
-├── 🔥 Project Overview
-│   └── Add app (</> icon) → Get config object
-│
-├── 🔐 Authentication
-│   ├── Users → See registered users
-│   └── Sign-in method → Enable auth methods + Get Web Client ID
-│
-└── 📊 Firestore Database
-    ├── Data → View user documents
-    └── Rules → Security rules
-```
-
-### Your .env File Structure
+## Environment Variables Explained
 
 ```bash
-# These 6 values come from Firebase config object
-EXPO_PUBLIC_FIREBASE_API_KEY=...
-EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=...
-EXPO_PUBLIC_FIREBASE_PROJECT_ID=...
-EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=...
-EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
-EXPO_PUBLIC_FIREBASE_APP_ID=...
+# Supabase Project URL
+# Found in: Project Settings → API → Project URL
+EXPO_PUBLIC_SUPABASE_URL=https://[your-project].supabase.co
 
-# This comes from Authentication → Sign-in method → Google
-EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=...
+# Supabase Anonymous Key (Public)
+# Found in: Project Settings → API → Project API keys → anon public
+EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
 
-Happy coding! 🚀
+## Additional Resources
+
+- [Supabase Documentation](https://supabase.com/docs)
+- [Supabase Auth Guide](https://supabase.com/docs/guides/auth)
+- [Row Level Security Guide](https://supabase.com/docs/guides/auth/row-level-security)
+- [Expo Documentation](https://docs.expo.dev/)
+
+## Common Commands
+
+```bash
+# Start development server
+npm start
+
+# Clear cache and start
+npm start -- --clear
+
+# Build for web
+npm run build:web
+
+# Run linter
+npm run lint
+```
+
+## Getting Help
+
+If you encounter issues:
+1. Check the [DEBUG_GUIDE.md](./DEBUG_GUIDE.md)
+2. Review the [AUTHENTICATION_GUIDE.md](./AUTHENTICATION_GUIDE.md)
+3. Check Supabase Dashboard logs
+4. Review browser/device console errors
+
+## What's Working
+
+- User registration with email/password
+- User login and logout
+- Session persistence
+- Profile creation
+- Privacy features (blocking users, hiding venues)
+
+## What to Build Next
+
+- Venue check-in system
+- Real-time chat between matches
+- Photo upload and gallery
+- Push notifications
+- Location-based matching algorithm
+
+Happy coding!
