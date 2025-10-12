@@ -25,6 +25,9 @@ export default function Profile() {
               if (user) {
                 await supabaseDatabaseService.updateUserOnlineStatus(user.id, false);
               }
+            } catch (error) {
+              console.error('Error during logout:', error);
+            }
             // For demo purposes, just navigate to login
             router.replace('/auth/login');
           },
