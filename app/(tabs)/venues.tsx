@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
-import { MapPin, Users, Clock, Star, Navigation, CircleCheck as CheckCircle, AlertCircle } from 'lucide-react-native';
+import { MapPin, Users, Clock, Star, Navigation, CircleCheck as CheckCircle, CircleAlert as AlertCircle } from 'lucide-react-native';
 import SafetyBanner from '@/components/SafetyBanner';
 import { useLocationTracking } from '@/hooks/useLocationTracking';
 import { checkProximityToMultipleLocations, VenueProximity, DEFAULT_CAFE } from '@/utils/locationUtils';
@@ -105,6 +105,7 @@ export default function VenuesScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<'all' | 'coffee' | 'bar' | 'restaurant'>('all');
   const [showSafetyBanner, setShowSafetyBanner] = useState(true);
+  const [venues, setVenues] = useState(mockVenues);
 
   useEffect(() => {
     if (userLocation) {
@@ -156,7 +157,7 @@ export default function VenuesScreen() {
   const extendCheckIn = (venueId: string) => {
     // TODO: Extend check-in via Firestore
     if (currentUserId) {
-      checkIn(currentUserId, venueId, 4); // Extend for 4 hours
+      console.log('Extending check-in for venue:', venueId);
     }
     
     setVenues(prev => prev.map(venue => 
@@ -278,11 +279,11 @@ export default function VenuesScreen() {
         <SafetyBanner onDismiss={() => setShowSafetyBanner(false)} />
       )}
 
-      {(locationLoading || venuesLoading) && (
+      {locationLoading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#E53935" />
           <Text style={styles.loadingText}>
-            {locationLoading ? 'Getting your location...' : 'Loading venues...'}
+            Getting your location...
           </Text>
         </View>
       )}

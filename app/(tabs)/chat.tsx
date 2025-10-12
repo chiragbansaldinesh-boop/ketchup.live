@@ -12,6 +12,7 @@ import {
 import { Send, MapPin, Gamepad as GamepadIcon, MoveVertical as MoreVertical, Shield, TriangleAlert as AlertTriangle } from 'lucide-react-native';
 import BlockUserModal from '@/components/BlockUserModal';
 import { privacyService } from '@/services/privacyService';
+import { ScrollView } from 'react-native';
 
 interface Chat {
   id: string;
@@ -76,30 +77,52 @@ export default function ChatScreen() {
   const currentUserId = 'current-user-id';
   
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
-  
-  const { matches, loading: matchesLoading } = useMatches(currentUserId);
-  const { messages, sendMessage: sendFirestoreMessage } = useMessages(selectedChat?.id || null);
-  
   const [message, setMessage] = useState('');
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: '1',
+      text: 'Hey! Nice to meet you at the café',
+      sender: 'other',
+      timestamp: '2:30 PM',
+    },
+    {
+      id: '2',
+      text: 'Hi! Yeah, great place. Do you come here often?',
+      sender: 'me',
+      timestamp: '2:32 PM',
+    },
+    {
+      id: '3',
+      text: 'Pretty regularly! The coffee is amazing ☕',
+      sender: 'other',
+      timestamp: '2:33 PM',
+    },
+  ]);
 
   const sendMessage = () => {
     if (message.trim()) {
-      // TODO: Send message via Firestore
-      if (selectedChat?.id) {
-        sendFirestoreMessage(currentUserId, message.trim());
-      }
-      
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        text: message.trim(),
+        sender: 'me',
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages(prev => [...prev, newMessage]);
       setMessage('');
     }
   };
 
   const sendIcebreaker = (text: string) => {
-    if (selectedChat?.id) {
-      sendFirestoreMessage(currentUserId, text);
-    }
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      text: text,
+      sender: 'me',
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setMessages(prev => [...prev, newMessage]);
   };
 
   const checkBlockStatus = async (userId: string) => {

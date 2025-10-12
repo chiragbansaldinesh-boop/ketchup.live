@@ -3,8 +3,6 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Switch, Al
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { User, Settings, Heart, MapPin, Camera, CreditCard as Edit3, LogOut } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { supabaseAuthService } from '@/services/supabaseAuthService';
-import { supabaseDatabaseService } from '@/services/supabaseDatabaseService';
 
 export default function Profile() {
   const [isOnline, setIsOnline] = useState(true);
@@ -27,17 +25,8 @@ export default function Profile() {
               if (user) {
                 await supabaseDatabaseService.updateUserOnlineStatus(user.id, false);
               }
-
-              const result = await supabaseAuthService.signOut();
-              if (result.success) {
-                router.replace('/auth/login');
-              } else {
-                Alert.alert('Error', 'Failed to logout. Please try again.');
-              }
-            } catch (error) {
-              console.error('Logout error:', error);
-              Alert.alert('Error', 'Failed to logout. Please try again.');
-            }
+            // For demo purposes, just navigate to login
+            router.replace('/auth/login');
           },
         },
       ],
