@@ -155,7 +155,7 @@ export default function VenuesScreen() {
   });
 
   const extendCheckIn = (venueId: string) => {
-    // TODO: Extend check-in via Firestore
+    // TODO: Extend check-in via Supabase
     if (currentUserId) {
       console.log('Extending check-in for venue:', venueId);
     }
