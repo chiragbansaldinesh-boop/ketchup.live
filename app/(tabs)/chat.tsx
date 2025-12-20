@@ -8,11 +8,14 @@ import {
   TextInput,
   Image,
   Alert,
+  Animated,
 } from 'react-native';
-import { Send, MapPin, Gamepad as GamepadIcon, MoveVertical as MoreVertical, Shield, TriangleAlert as AlertTriangle } from 'lucide-react-native';
+import { Send, MapPin, Gamepad as GamepadIcon, MoveVertical as MoreVertical, Shield, TriangleAlert as AlertTriangle, ArrowLeft } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { BlurView } from 'expo-blur';
 import BlockUserModal from '@/components/BlockUserModal';
 import { privacyService } from '@/services/privacyService';
-import { ScrollView } from 'react-native';
 
 interface Chat {
   id: string;
@@ -81,6 +84,7 @@ export default function ChatScreen() {
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -101,6 +105,14 @@ export default function ChatScreen() {
       timestamp: '2:33 PM',
     },
   ]);
+
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const sendMessage = () => {
     if (message.trim()) {
@@ -165,47 +177,52 @@ export default function ChatScreen() {
   };
 
   const ChatMenu = () => (
-    <View style={styles.chatMenuOverlay}>
+    <View style={styles.menuOverlay}>
       <TouchableOpacity 
-        style={styles.chatMenuBackdrop} 
+        style={styles.menuBackdrop} 
         onPress={() => setShowChatMenu(false)}
       />
-      <View style={styles.chatMenu}>
-        <TouchableOpacity 
-          style={styles.chatMenuItem}
-          onPress={() => {
-            setShowChatMenu(false);
-            setShowBlockModal(true);
-          }}
-        >
-          <Shield size={20} color="#DC2626" />
-          <Text style={styles.chatMenuText}>Block User</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.chatMenuItem}
-          onPress={handleReportUser}
-        >
-          <AlertTriangle size={20} color="#F59E0B" />
-          <Text style={styles.chatMenuText}>Report User</Text>
-        </TouchableOpacity>
-      </View>
+      <BlurView intensity={80} style={styles.menu}>
+        <View style={styles.menuContent}>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={() => {
+              setShowChatMenu(false);
+              setShowBlockModal(true);
+            }}
+          >
+            <Shield size={20} color="#DC2626" />
+            <Text style={styles.menuText}>Block User</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.menuItem}
+            onPress={handleReportUser}
+          >
+            <AlertTriangle size={20} color="#F59E0B" />
+            <Text style={styles.menuText}>Report User</Text>
+          </TouchableOpacity>
+        </View>
+      </BlurView>
     </View>
   );
 
   if (selectedChat) {
     return (
-      <View style={styles.container}>
-        <View style={styles.chatHeader}>
-          <TouchableOpacity onPress={() => setSelectedChat(null)}>
-            <Text style={styles.backButton}>← Back</Text>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => setSelectedChat(null)}
+          >
+            <ArrowLeft size={24} color="#1A1A1A" />
           </TouchableOpacity>
-          <View style={styles.chatHeaderInfo}>
-            <Image source={{ uri: selectedChat.photo }} style={styles.chatHeaderPhoto} />
+          <View style={styles.headerInfo}>
+            <Image source={{ uri: selectedChat.photo }} style={styles.headerPhoto} />
             <View>
-              <Text style={styles.chatHeaderName}>{selectedChat.name}</Text>
-              <View style={styles.chatHeaderVenue}>
+              <Text style={styles.headerName}>{selectedChat.name}</Text>
+              <View style={styles.headerVenue}>
                 <MapPin size={12} color="#6B7280" />
-                <Text style={styles.chatHeaderVenueText}>Met at {selectedChat.matchedAt || selectedChat.venue}</Text>
+                <Text style={styles.headerVenueText}>Met at {selectedChat.matchedAt || selectedChat.venue}</Text>
               </View>
             </View>
           </View>
@@ -301,64 +318,99 @@ export default function ChatScreen() {
           venue={selectedChat.venue}
           onUserBlocked={handleUserBlocked}
         />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Messages</Text>
-        <Text style={styles.subtitle}>
-          {mockChats.filter(c => c.unread).length} new conversations
-        </Text>
-      </View>
-
-      <FlatList
-        data={mockChats}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.chatItem}
-            onPress={() => handleChatSelect(item)}
+    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.mainHeader}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => router.back()}
           >
-            <Image source={{ uri: item.photo }} style={styles.avatar} />
-            <View style={styles.chatContent}>
-              <View style={styles.chatMeta}>
-                <Text style={styles.chatName}>{item.name}</Text>
-                <Text style={styles.chatTime}>{item.timestamp}</Text>
-              </View>
-              <View style={styles.venueContainer}>
-                <MapPin size={12} color="#6B7280" />
-                <Text style={styles.venueText}>Met at {item.matchedAt || item.venue}</Text>
-              </View>
-              <Text style={[styles.lastMessage, item.unread && styles.unreadMessage]}>
-                {item.lastMessage}
-              </Text>
-            </View>
-            {item.unread && <View style={styles.unreadDot} />}
+            <ArrowLeft size={24} color="#1A1A1A" />
           </TouchableOpacity>
-        )}
-      />
-    </View>
+          <View style={styles.headerContent}>
+            <Text style={styles.title}>Messages</Text>
+            <Text style={styles.subtitle}>
+              {mockChats.filter(c => c.unread).length} new conversations
+            </Text>
+          </View>
+          <View style={styles.placeholder} />
+        </View>
+
+        <FlatList
+          data={mockChats}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.chatsList}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.chatItem}
+              onPress={() => handleChatSelect(item)}
+            >
+              <Image source={{ uri: item.photo }} style={styles.avatar} />
+              <View style={styles.chatContent}>
+                <View style={styles.chatMeta}>
+                  <Text style={styles.chatName}>{item.name}</Text>
+                  <Text style={styles.chatTime}>{item.timestamp}</Text>
+                </View>
+                <View style={styles.venueContainer}>
+                  <MapPin size={12} color="#6B7280" />
+                  <Text style={styles.venueText}>Met at {item.matchedAt || item.venue}</Text>
+                </View>
+                <Text style={[styles.lastMessage, item.unread && styles.unreadMessage]}>
+                  {item.lastMessage}
+                </Text>
+              </View>
+              {item.unread && <View style={styles.unreadDot} />}
+            </TouchableOpacity>
+          )}
+        />
+      </SafeAreaView>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#FFFDF9',
   },
-  header: {
-    paddingTop: 60,
+  safeArea: {
+    flex: 1,
+  },
+  mainHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingVertical: 16,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(225,6,0,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholder: {
+    width: 40,
+  },
+  headerContent: {
+    alignItems: 'center',
+  },
+  chatsList: {
+    paddingHorizontal: 20,
+    paddingBottom: 100,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#374151',
+    color: '#1A1A1A',
     marginBottom: 4,
   },
   subtitle: {
@@ -368,15 +420,16 @@ const styles = StyleSheet.create({
   chatItem: {
     flexDirection: 'row',
     padding: 20,
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
+    backgroundColor: '#FFFDF9',
     marginBottom: 12,
-    borderRadius: 16,
-    shadowColor: '#000',
+    borderRadius: 24,
+    shadowColor: 'rgba(0,0,0,0.05)',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 1,
     shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(26,26,26,0.05)',
   },
   avatar: {
     width: 56,
@@ -395,7 +448,7 @@ const styles = StyleSheet.create({
   chatName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#374151',
+    color: '#1A1A1A',
   },
   chatTime: {
     fontSize: 12,
@@ -416,7 +469,7 @@ const styles = StyleSheet.create({
     color: '#6B7280',
   },
   unreadMessage: {
-    color: '#374151',
+    color: '#1A1A1A',
     fontWeight: '500',
   },
   unreadDot: {
@@ -426,44 +479,34 @@ const styles = StyleSheet.create({
     backgroundColor: '#D50000',
     alignSelf: 'center',
   },
-  chatHeader: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 60,
     paddingHorizontal: 20,
     paddingBottom: 20,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
   },
-  backButton: {
-    fontSize: 16,
-    color: '#D50000',
-    fontWeight: '500',
-    marginRight: 16,
-  },
-  chatHeaderInfo: {
+  headerInfo: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
   },
-  chatHeaderPhoto: {
+  headerPhoto: {
     width: 40,
     height: 40,
     borderRadius: 20,
     marginRight: 12,
   },
-  chatHeaderName: {
+  headerName: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#374151',
+    color: '#1A1A1A',
   },
-  chatHeaderVenue: {
+  headerVenue: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 2,
   },
-  chatHeaderVenueText: {
+  headerVenueText: {
     fontSize: 12,
     color: '#6B7280',
     marginLeft: 4,
@@ -472,7 +515,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: 'rgba(225,6,0,0.08)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -498,12 +541,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   myMessageText: {
-    backgroundColor: '#D50000',
-    color: '#FFFFFF',
+    backgroundColor: '#E10600',
+    color: '#FFFDF9',
   },
   otherMessageText: {
-    backgroundColor: '#FFFFFF',
-    color: '#374151',
+    backgroundColor: 'rgba(225,6,0,0.08)',
+    color: '#1A1A1A',
   },
   messageTime: {
     fontSize: 11,
@@ -521,47 +564,39 @@ const styles = StyleSheet.create({
   icebreakerContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
   },
   icebreakerButton: {
-    backgroundColor: '#FFF5F5',
+    backgroundColor: 'rgba(225,6,0,0.08)',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 24,
     marginRight: 12,
-    borderWidth: 1,
-    borderColor: '#FED7D7',
   },
   icebreakerText: {
     fontSize: 14,
-    color: '#D50000',
+    color: '#E10600',
     fontWeight: '500',
   },
   inputContainer: {
     flexDirection: 'row',
     padding: 20,
-    backgroundColor: '#FFFFFF',
     alignItems: 'flex-end',
   },
   textInput: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    backgroundColor: 'rgba(225,6,0,0.05)',
     borderRadius: 25,
     paddingHorizontal: 20,
     paddingVertical: 12,
     fontSize: 16,
     maxHeight: 100,
     marginRight: 12,
-    backgroundColor: '#F9FAFB',
   },
   sendButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#D50000',
+    backgroundColor: '#E10600',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -585,7 +620,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 24,
   },
-  chatMenuOverlay: {
+  menuOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -593,35 +628,36 @@ const styles = StyleSheet.create({
     bottom: 0,
     zIndex: 1000,
   },
-  chatMenuBackdrop: {
+  menuBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  chatMenu: {
+  menu: {
     position: 'absolute',
     top: 120,
     right: 20,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    shadowColor: '#000',
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: 'rgba(225,6,0,0.12)',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
+    shadowOpacity: 1,
+    shadowRadius: 24,
     elevation: 8,
     minWidth: 160,
   },
-  chatMenuItem: {
+  menuContent: {
+    paddingVertical: 12,
+  },
+  menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
   },
-  chatMenuText: {
+  menuText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#374151',
+    color: '#1A1A1A',
     marginLeft: 12,
   },
 });

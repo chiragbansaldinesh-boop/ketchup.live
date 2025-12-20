@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Image, StyleSheet, TouchableOpacity, Animated } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 interface FloatingAvatarProps {
   id: string;
@@ -22,8 +21,10 @@ export default function FloatingAvatar({
   const floatAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Floating animation
     Animated.loop(
       Animated.sequence([
         Animated.timing(floatAnim, {
@@ -39,21 +40,24 @@ export default function FloatingAvatar({
       ])
     ).start();
 
+    // Active user glow animation
     if (isActive) {
       Animated.loop(
         Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 1.1,
-            duration: 1500,
+          Animated.timing(glowAnim, {
+            toValue: 1,
+            duration: 2000,
             useNativeDriver: true,
           }),
-          Animated.timing(pulseAnim, {
-            toValue: 1,
-            duration: 1500,
+          Animated.timing(glowAnim, {
+            toValue: 0,
+            duration: 2000,
             useNativeDriver: true,
           }),
         ])
       ).start();
+    } else {
+      glowAnim.setValue(0);
     }
   }, [isActive]);
 
@@ -72,11 +76,21 @@ export default function FloatingAvatar({
   const handlePressOut = () => {
     Animated.spring(scaleAnim, {
       toValue: 1,
-      friction: 3,
+      friction: 4,
       useNativeDriver: true,
     }).start();
     onPress();
   };
+
+  const glowOpacity = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.3, 0.8],
+  });
+
+  const glowScale = glowAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.2],
+  });
 
   return (
     <Animated.View
@@ -100,19 +114,13 @@ export default function FloatingAvatar({
         {isActive && (
           <Animated.View
             style={[
-              styles.activeRing,
+              styles.glowRing,
               {
-                transform: [{ scale: pulseAnim }],
+                opacity: glowOpacity,
+                transform: [{ scale: glowScale }],
               },
             ]}
-          >
-            <LinearGradient
-              colors={['#E10600', '#FF6B6B']}
-              style={styles.gradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-            />
-          </Animated.View>
+          />
         )}
         <View style={styles.avatarContainer}>
           <Image
@@ -129,18 +137,14 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
   },
-  activeRing: {
+  glowRing: {
     position: 'absolute',
-    width: 74,
-    height: 74,
-    borderRadius: 37,
-    top: -7,
-    left: -7,
-    overflow: 'hidden',
-  },
-  gradient: {
-    flex: 1,
-    opacity: 0.6,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    top: -10,
+    left: -10,
+    backgroundColor: '#E10600',
   },
   avatarContainer: {
     width: 60,
@@ -148,7 +152,7 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     backgroundColor: '#FFFDF9',
     padding: 3,
-    shadowColor: 'rgba(225,6,0,0.12)',
+    shadowColor: 'rgba(0,0,0,0.1)',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 12,

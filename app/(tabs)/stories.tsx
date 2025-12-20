@@ -8,10 +8,12 @@ import {
   Image,
   Modal,
   Dimensions,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { X, Eye, Plus } from 'lucide-react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { X, Eye, Plus, ArrowLeft } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { BlurView } from 'expo-blur';
 
 const { width, height } = Dimensions.get('window');
 
@@ -72,6 +74,15 @@ const mockStories: Story[] = [
 export default function StoriesScreen() {
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const fadeAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const handleStoryPress = (story: Story, index: number) => {
     setSelectedStory(story);
@@ -156,68 +167,91 @@ export default function StoriesScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Stories</Text>
-      </View>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.storiesContainer}
-      >
-        <TouchableOpacity style={styles.addStoryCircle}>
-          <View style={styles.addStoryButton}>
-            <Plus size={28} color="#FFFFFF" />
-          </View>
-          <Text style={styles.storyName}>Your Story</Text>
-        </TouchableOpacity>
-
-        {mockStories.map((story, index) => (
-          <StoryCircle key={story.id} story={story} index={index} />
-        ))}
-      </ScrollView>
-
-      <View style={styles.recentSection}>
-        <Text style={styles.sectionTitle}>Recent Stories</Text>
-        <View style={styles.recentGrid}>
-          {mockStories.slice(0, 6).map((story) => (
-            <TouchableOpacity
-              key={story.id}
-              style={styles.recentCard}
-              onPress={() => handleStoryPress(story, mockStories.indexOf(story))}
-            >
-              <Image source={{ uri: story.mediaUrl }} style={styles.recentImage} />
-              <View style={styles.recentOverlay}>
-                <Image source={{ uri: story.userPhoto }} style={styles.recentUserPhoto} />
-                <Text style={styles.recentUserName}>{story.userName}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={24} color="#1A1A1A" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Stories</Text>
+          <View style={styles.placeholder} />
         </View>
-      </View>
 
-      <StoryViewer />
-    </SafeAreaView>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.storiesContainer}
+        >
+          <TouchableOpacity style={styles.addStoryCircle}>
+            <View style={styles.addStoryButton}>
+              <Plus size={28} color="#FFFDF9" />
+            </View>
+            <Text style={styles.storyName}>Your Story</Text>
+          </TouchableOpacity>
+
+          {mockStories.map((story, index) => (
+            <StoryCircle key={story.id} story={story} index={index} />
+          ))}
+        </ScrollView>
+
+        <View style={styles.recentSection}>
+          <Text style={styles.sectionTitle}>Recent Stories</Text>
+          <View style={styles.recentGrid}>
+            {mockStories.slice(0, 6).map((story) => (
+              <TouchableOpacity
+                key={story.id}
+                style={styles.recentCard}
+                onPress={() => handleStoryPress(story, mockStories.indexOf(story))}
+              >
+                <Image source={{ uri: story.mediaUrl }} style={styles.recentImage} />
+                <View style={styles.recentOverlay}>
+                  <Image source={{ uri: story.userPhoto }} style={styles.recentUserPhoto} />
+                  <Text style={styles.recentUserName}>{story.userName}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <StoryViewer />
+      </SafeAreaView>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: '#FFFDF9',
+  },
+  safeArea: {
+    flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(225,6,0,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholder: {
+    width: 40,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#374151',
+    color: '#1A1A1A',
   },
   storiesContainer: {
     paddingHorizontal: 20,
@@ -236,8 +270,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
-    borderWidth: 3,
-    borderColor: '#FFFFFF',
+    shadowColor: 'rgba(225,6,0,0.12)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 6,
   },
   storyCircle: {
     alignItems: 'center',
@@ -246,8 +283,8 @@ const styles = StyleSheet.create({
   storyRing: {
     padding: 3,
     borderRadius: 42,
-    borderWidth: 3,
-    borderColor: '#E5E7EB',
+    borderWidth: 2,
+    borderColor: 'rgba(26,26,26,0.1)',
     marginBottom: 8,
   },
   storyRingUnseen: {
@@ -261,7 +298,7 @@ const styles = StyleSheet.create({
   storyName: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#374151',
+    color: '#1A1A1A',
     maxWidth: 80,
     textAlign: 'center',
   },
@@ -273,7 +310,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#374151',
+    color: '#1A1A1A',
     marginBottom: 16,
   },
   recentGrid: {
@@ -284,8 +321,13 @@ const styles = StyleSheet.create({
   recentCard: {
     width: (width - 52) / 2,
     height: 200,
-    borderRadius: 16,
+    borderRadius: 24,
     overflow: 'hidden',
+    shadowColor: 'rgba(0,0,0,0.1)',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 4,
   },
   recentImage: {
     width: '100%',
@@ -310,7 +352,7 @@ const styles = StyleSheet.create({
   recentUserName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#FFFDF9',
   },
   storyViewerContainer: {
     flex: 1,
@@ -359,11 +401,11 @@ const styles = StyleSheet.create({
   storyUserName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#FFFDF9',
   },
   storyTimestamp: {
     fontSize: 12,
-    color: '#FFFFFF',
+    color: '#FFFDF9',
     opacity: 0.8,
   },
   closeButton: {
@@ -382,7 +424,7 @@ const styles = StyleSheet.create({
   viewerCount: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: '#FFFDF9',
     marginLeft: 8,
   },
 });
