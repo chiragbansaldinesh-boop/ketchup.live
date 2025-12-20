@@ -17,37 +17,37 @@ interface SafetyTip {
 
 const safetyTips: SafetyTip[] = [
   {
-    icon: <MapPin size={24} color="#E53935" />,
+    icon: <MapPin size={24} color="#D50000" />,
     title: 'Meet in Public Places',
     description: 'Always meet your matches in public venues like cafés, restaurants, or other busy locations. Avoid private or isolated areas for first meetings.',
     category: 'meeting',
   },
   {
-    icon: <Users size={24} color="#E53935" />,
+    icon: <Users size={24} color="#D50000" />,
     title: 'Tell Someone Your Plans',
     description: 'Let a friend or family member know where you\'re going, who you\'re meeting, and when you expect to return.',
     category: 'meeting',
   },
   {
-    icon: <Eye size={24} color="#E53935" />,
+    icon: <Eye size={24} color="#D50000" />,
     title: 'Trust Your Instincts',
     description: 'If something feels off or uncomfortable, trust your gut feeling. You can always leave or end the conversation.',
     category: 'general',
   },
   {
-    icon: <MessageCircle size={24} color="#E53935" />,
+    icon: <MessageCircle size={24} color="#D50000" />,
     title: 'Keep Conversations on the App',
     description: 'Avoid sharing personal contact information too quickly. Use the app\'s messaging system until you feel comfortable.',
     category: 'online',
   },
   {
-    icon: <Shield size={24} color="#E53935" />,
+    icon: <Shield size={24} color="#D50000" />,
     title: 'Protect Personal Information',
     description: 'Don\'t share your home address, workplace details, or financial information with matches.',
     category: 'online',
   },
   {
-    icon: <AlertTriangle size={24} color="#E53935" />,
+    icon: <AlertTriangle size={24} color="#D50000" />,
     title: 'Report Suspicious Behavior',
     description: 'If someone makes you uncomfortable or violates our guidelines, block and report them immediately.',
     category: 'general',
@@ -81,7 +81,7 @@ export default function SafetyTipsScreen() {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={styles.headerIcon}>
-            <Shield size={32} color="#E53935" />
+            <Shield size={32} color="#D50000" />
           </View>
           <Text style={styles.title}>Safety First</Text>
           <Text style={styles.subtitle}>

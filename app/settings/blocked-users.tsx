@@ -104,7 +104,7 @@ export default function BlockedUsersScreen() {
           }} 
         />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E53935" />
+          <ActivityIndicator size="large" color="#D50000" />
           <Text style={styles.loadingText}>Loading blocked users...</Text>
         </View>
       </>

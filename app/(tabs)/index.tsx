@@ -383,7 +383,7 @@ export default function DiscoverScreen() {
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={styles.venueTag}>
-            <MapPin size={16} color="#E53935" />
+            <MapPin size={16} color="#D50000" />
             <Text style={styles.venueText}>{currentUser.venue}</Text>
           </View>
         </View>
@@ -490,7 +490,7 @@ export default function DiscoverScreen() {
 
         <View style={styles.actions}>
           <TouchableOpacity style={styles.passButton} onPress={handlePass}>
-            <X size={24} color="#E53935" />
+            <X size={24} color="#D50000" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.likeButton} onPress={handleLike}>
             <Heart size={24} color="#FFFFFF" fill="#FFFFFF" />
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
   },
   venueText: {
     marginLeft: 6,
-    color: '#E53935',
+    color: '#D50000',
     fontWeight: '600',
     fontSize: 14,
   },
@@ -558,7 +558,7 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     fontSize: 14,
-    color: '#E53935',
+    color: '#D50000',
     fontWeight: '600',
   },
   usersList: {
@@ -660,16 +660,16 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
     borderWidth: 2,
-    borderColor: '#E53935',
+    borderColor: '#D50000',
   },
   likeButton: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#E53935',
+    shadowColor: '#D50000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -698,7 +698,7 @@ const styles = StyleSheet.create({
   scanButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 25,
@@ -718,7 +718,7 @@ const styles = StyleSheet.create({
   },
   distanceText: {
     fontSize: 14,
-    color: '#E53935',
+    color: '#D50000',
     fontWeight: '600',
   },
   matchOverlay: {
@@ -742,7 +742,7 @@ const styles = StyleSheet.create({
   matchTitle: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#E53935',
+    color: '#D50000',
     marginBottom: 24,
     textAlign: 'center',
   },
@@ -756,7 +756,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 3,
-    borderColor: '#E53935',
+    borderColor: '#D50000',
   },
   ketchupSplash: {
     marginHorizontal: 20,
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   startChatButton: {
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 25,

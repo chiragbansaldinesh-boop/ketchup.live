@@ -40,10 +40,7 @@ export default function KetchupSplashScreen({ onComplete }: KetchupSplashScreenP
   }, [fadeAnim, scaleAnim, onComplete]);
 
   return (
-    <LinearGradient
-      colors={['#E53935', '#C62828']}
-      style={styles.container}
-    >
+    <View style={styles.container}>
       <Animated.View
         style={[
           styles.content,
@@ -54,10 +51,10 @@ export default function KetchupSplashScreen({ onComplete }: KetchupSplashScreenP
         ]}
       >
         <KetchupBottleIcon size={120} color="#FFFFFF" fill="#FFFFFF" />
-        <Text style={styles.title}>KetchupLive</Text>
-        <Text style={styles.subtitle}>Connect at the moment</Text>
+        <Text style={styles.title}>Ketchup</Text>
+        <Text style={styles.subtitle}>Real Connections, Nearby</Text>
       </Animated.View>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -66,12 +63,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#D50000',
   },
   content: {
     alignItems: 'center',
   },
   title: {
-    fontSize: 48,
+    fontSize: 52,
     fontWeight: '700',
     color: '#FFFFFF',
     marginTop: 24,
@@ -80,8 +78,8 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     color: '#FFFFFF',
-    opacity: 0.9,
-    marginTop: 8,
+    opacity: 0.95,
+    marginTop: 12,
     fontWeight: '500',
   },
 });

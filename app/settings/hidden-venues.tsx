@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   },
   venueType: {
     fontSize: 12,
-    color: '#E53935',
+    color: '#D50000',
     fontWeight: '500',
     marginBottom: 4,
   },

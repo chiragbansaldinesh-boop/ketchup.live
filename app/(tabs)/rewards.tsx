@@ -90,7 +90,7 @@ const boosts = [
     description: 'Appear first in venue pool for 30 minutes',
     price: '$2.99',
     duration: '30 min',
-    color: '#E53935',
+    color: '#D50000',
   },
   {
     id: '2',
@@ -183,7 +183,7 @@ export default function RewardsScreen() {
         <Text style={styles.title}>Rewards</Text>
         <View style={styles.stats}>
           <View style={styles.statItem}>
-            <Trophy size={32} color="#E53935" />
+            <Trophy size={32} color="#D50000" />
             <Text style={styles.statText}>8 Badges Earned</Text>
           </View>
         </View>
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 14,
     fontWeight: '600',
-    color: '#E53935',
+    color: '#D50000',
   },
   tabContainer: {
     flexDirection: 'row',
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   activeTab: {
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
   },
   tabText: {
     fontSize: 16,
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     borderRadius: 2,
   },
   progressText: {

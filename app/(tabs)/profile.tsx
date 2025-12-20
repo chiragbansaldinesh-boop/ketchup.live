@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { User, Settings, Heart, MapPin, Camera, CreditCard as Edit3, LogOut } from 'lucide-react-native';
+import { User, Settings, Heart, MapPin, Camera, CreditCard as Edit3, LogOut, Film, Trophy, Crown, ChevronRight } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { supabaseAuthService } from '@/services/supabaseAuthService';
+import { supabaseDatabaseService } from '@/services/supabaseDatabaseService';
 
 export default function Profile() {
   const [isOnline, setIsOnline] = useState(true);
@@ -84,7 +86,7 @@ export default function Profile() {
             <View style={styles.nameRow}>
               <Text style={styles.name}>{userProfile.name}, {userProfile.age}</Text>
               <TouchableOpacity style={styles.editButton}>
-                <Edit3 size={18} color="#E53935" />
+                <Edit3 size={18} color="#D50000" />
               </TouchableOpacity>
             </View>
             
@@ -101,7 +103,7 @@ export default function Profile() {
               <Switch
                 value={isOnline}
                 onValueChange={setIsOnline}
-                trackColor={{ false: '#ddd', true: '#E53935' }}
+                trackColor={{ false: '#ddd', true: '#D50000' }}
                 thumbColor="#fff"
               />
             </View>
@@ -109,7 +111,7 @@ export default function Profile() {
             {/* Current Venue */}
             {isOnline && userProfile.currentVenue && (
               <View style={styles.currentVenue}>
-                <MapPin size={16} color="#E53935" />
+                <MapPin size={16} color="#D50000" />
                 <Text style={styles.venueText}>Currently at {userProfile.currentVenue}</Text>
               </View>
             )}
@@ -120,7 +122,7 @@ export default function Profile() {
         <View style={styles.statsContainer}>
           {stats.map((stat, index) => (
             <View key={index} style={styles.statCard}>
-              <stat.icon size={24} color="#E53935" />
+              <stat.icon size={24} color="#D50000" />
               <Text style={styles.statValue}>{stat.value}</Text>
               <Text style={styles.statLabel}>{stat.label}</Text>
             </View>
@@ -155,14 +157,42 @@ export default function Profile() {
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <TouchableOpacity 
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push('/stories')}
+          >
+            <Film size={20} color="#D50000" />
+            <Text style={styles.actionText}>My Stories</Text>
+            <ChevronRight size={20} color="#9CA3AF" style={styles.chevron} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push('/rewards')}
+          >
+            <Trophy size={20} color="#D50000" />
+            <Text style={styles.actionText}>Rewards</Text>
+            <ChevronRight size={20} color="#9CA3AF" style={styles.chevron} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => router.push('/settings/subscription')}
+          >
+            <Crown size={20} color="#D50000" />
+            <Text style={styles.actionText}>Subscription</Text>
+            <ChevronRight size={20} color="#9CA3AF" style={styles.chevron} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={styles.actionButton}
             onPress={() => router.push('/settings')}
           >
-            <Settings size={20} color="#E53935" />
+            <Settings size={20} color="#D50000" />
             <Text style={styles.actionText}>Settings & Privacy</Text>
+            <ChevronRight size={20} color="#9CA3AF" style={styles.chevron} />
           </TouchableOpacity>
-          
+
           <TouchableOpacity
             style={[styles.actionButton, styles.logoutButton]}
             onPress={handleLogout}
@@ -224,7 +254,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     right: '35%',
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     width: 32,
     height: 32,
     borderRadius: 16,
@@ -292,7 +322,7 @@ const styles = StyleSheet.create({
   },
   venueText: {
     fontSize: 14,
-    color: '#E53935',
+    color: '#D50000',
     fontWeight: '500',
     marginLeft: 6,
   },
@@ -348,7 +378,7 @@ const styles = StyleSheet.create({
   },
   interestText: {
     fontSize: 14,
-    color: '#E53935',
+    color: '#D50000',
     fontWeight: '500',
   },
   photoGallery: {
@@ -396,6 +426,10 @@ const styles = StyleSheet.create({
     color: '#333',
     fontWeight: '500',
     marginLeft: 12,
+    flex: 1,
+  },
+  chevron: {
+    marginLeft: 'auto',
   },
   logoutButton: {
     borderWidth: 1,

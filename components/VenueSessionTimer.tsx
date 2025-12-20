@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     color: '#F59E0B',
   },
   extendButton: {
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,

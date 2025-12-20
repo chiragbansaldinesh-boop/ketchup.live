@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { MessageCircle, QrCode, Trophy, User, MapPin, Navigation } from 'lucide-react-native';
+import { MessageCircle, User, MapPin, Film, Heart } from 'lucide-react-native';
 import KetchupBottleIcon from '@/components/KetchupBottleIcon';
 
 export default function TabLayout() {
@@ -7,7 +7,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#E53935',
+        tabBarActiveTintColor: '#D50000',
         tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -33,52 +33,34 @@ export default function TabLayout() {
         options={{
           title: 'Discover',
           tabBarIcon: ({ size, color }) => (
-            <KetchupBottleIcon size={size} color={color} fill={color === '#E53935' ? color : 'none'} />
+            <Heart size={size} color={color} fill={color === '#D50000' ? color : 'none'} />
           ),
         }}
       />
       <Tabs.Screen
-        name="scanner"
+        name="stories"
         options={{
-          title: 'Scan',
+          title: 'Stories',
           tabBarIcon: ({ size, color }) => (
-            <QrCode size={size} color={color} />
+            <Film size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="venues"
         options={{
-          title: 'Venues',
+          title: 'Café Map',
           tabBarIcon: ({ size, color }) => (
             <MapPin size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="proximity"
-        options={{
-          title: 'Location',
-          tabBarIcon: ({ size, color }) => (
-            <Navigation size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="chat"
         options={{
-          title: 'Chat',
+          title: 'Matches',
           tabBarIcon: ({ size, color }) => (
-            <MessageCircle size={size} color={color} fill={color === '#E53935' ? color : 'none'} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="rewards"
-        options={{
-          title: 'Rewards',
-          tabBarIcon: ({ size, color }) => (
-            <Trophy size={size} color={color} fill={color === '#E53935' ? color : 'none'} />
+            <MessageCircle size={size} color={color} fill={color === '#D50000' ? color : 'none'} />
           ),
         }}
       />
@@ -89,6 +71,30 @@ export default function TabLayout() {
           tabBarIcon: ({ size, color }) => (
             <User size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="scanner"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="proximity"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="rewards"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="discover"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

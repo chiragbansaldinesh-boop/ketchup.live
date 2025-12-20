@@ -90,7 +90,7 @@ export default function ScannerScreen() {
 
           <View style={styles.statsContainer}>
             <View style={styles.venueStatItem}>
-              <Users size={24} color="#E53935" />
+              <Users size={24} color="#D50000" />
               <Text style={styles.statNumber}>8</Text>
               <Text style={styles.statLabel}>People here now</Text>
             </View>
@@ -110,7 +110,7 @@ export default function ScannerScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.extendSessionButton} onPress={extendSession}>
-            <Clock size={16} color="#E53935" />
+            <Clock size={16} color="#D50000" />
             <Text style={styles.extendSessionText}>Extend Session (+2 hours)</Text>
           </TouchableOpacity>
           
@@ -152,7 +152,7 @@ export default function ScannerScreen() {
       <View style={styles.bottomContainer}>
         <View style={styles.instructionsContainer}>
           <View style={styles.instruction}>
-            <MapPin size={20} color="#E53935" />
+            <MapPin size={20} color="#D50000" />
             <Text style={styles.instructionText}>
               Look for QR codes at tables, counters, or entrance
             </Text>
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
   scannerFrame: {
     width: 200,
     height: 200,
-    borderColor: '#E53935',
+    borderColor: '#D50000',
     borderWidth: 3,
     borderRadius: 20,
     backgroundColor: 'transparent',
@@ -321,7 +321,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   permissionButton: {
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 25,
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#E53935',
+    color: '#D50000',
     marginTop: 8,
   },
   statLabel: {
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   discoverButton: {
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 25,
@@ -421,11 +421,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 25,
     borderWidth: 1,
-    borderColor: '#E53935',
+    borderColor: '#D50000',
     marginBottom: 16,
   },
   extendSessionText: {
-    color: '#E53935',
+    color: '#D50000',
     fontSize: 16,
     fontWeight: '500',
     marginLeft: 8,
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   scanAgainText: {
-    color: '#E53935',
+    color: '#D50000',
     fontSize: 16,
     fontWeight: '500',
   },

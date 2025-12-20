@@ -212,7 +212,7 @@ export default function VenuesScreen() {
             style={styles.extendButton}
             onPress={() => extendCheckIn(item.id)}
           >
-            <Clock size={16} color="#E53935" />
+            <Clock size={16} color="#D50000" />
             <Text style={styles.extendText}>Extend</Text>
           </TouchableOpacity>
         </View>
@@ -281,7 +281,7 @@ export default function VenuesScreen() {
 
       {locationLoading && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E53935" />
+          <ActivityIndicator size="large" color="#D50000" />
           <Text style={styles.loadingText}>
             Getting your location...
           </Text>
@@ -337,8 +337,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   activeFilter: {
-    backgroundColor: '#E53935',
-    borderColor: '#E53935',
+    backgroundColor: '#D50000',
+    borderColor: '#D50000',
   },
   filterText: {
     fontSize: 14,
@@ -379,7 +379,7 @@ const styles = StyleSheet.create({
   },
   venueType: {
     fontSize: 14,
-    color: '#E53935',
+    color: '#D50000',
     fontWeight: '500',
     marginBottom: 4,
   },
@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
   activeUsers: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#E53935',
+    color: '#D50000',
     marginLeft: 4,
   },
   venueAddress: {
@@ -477,7 +477,7 @@ const styles = StyleSheet.create({
   },
   checkedInText: {
     fontSize: 14,
-    color: '#E53935',
+    color: '#D50000',
     fontWeight: '500',
   },
   extendButton: {
@@ -488,11 +488,11 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#E53935',
+    borderColor: '#D50000',
   },
   extendText: {
     fontSize: 12,
-    color: '#E53935',
+    color: '#D50000',
     fontWeight: '600',
     marginLeft: 4,
   },
@@ -500,7 +500,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scanButton: {
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 25,

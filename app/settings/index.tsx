@@ -302,7 +302,7 @@ export default function SettingsScreen() {
           value={item.value}
           onValueChange={item.onPress}
           trackColor={{ false: '#D1D5DB', true: '#FEE2E2' }}
-          thumbColor={item.value ? '#E53935' : '#F3F4F6'}
+          thumbColor={item.value ? '#D50000' : '#F3F4F6'}
         />
       ) : (
         <Text style={styles.settingArrow}>›</Text>

@@ -65,7 +65,7 @@ export default function PrivacyPolicyScreen() {
           }} 
         />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E53935" />
+          <ActivityIndicator size="large" color="#D50000" />
           <Text style={styles.loadingText}>Loading privacy policy...</Text>
         </View>
       </>
@@ -111,7 +111,7 @@ export default function PrivacyPolicyScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <View style={styles.headerIcon}>
-              <Shield size={32} color="#E53935" />
+              <Shield size={32} color="#D50000" />
             </View>
             <Text style={styles.title}>Privacy Policy</Text>
             <View style={styles.versionInfo}>
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   retryButton: {
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 25,
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderLeftWidth: 4,
-    borderLeftColor: '#E53935',
+    borderLeftColor: '#D50000',
   },
   section: {
     marginBottom: 32,
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#F3F4F6',
   },
   acceptButton: {
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     paddingVertical: 16,
     borderRadius: 25,
     alignItems: 'center',

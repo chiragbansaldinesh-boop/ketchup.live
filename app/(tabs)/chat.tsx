@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     alignSelf: 'center',
   },
   chatHeader: {
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     fontSize: 16,
-    color: '#E53935',
+    color: '#D50000',
     fontWeight: '500',
     marginRight: 16,
   },
@@ -498,7 +498,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   myMessageText: {
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     color: '#FFFFFF',
   },
   otherMessageText: {
@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
   },
   icebreakerText: {
     fontSize: 14,
-    color: '#E53935',
+    color: '#D50000',
     fontWeight: '500',
   },
   inputContainer: {
@@ -561,7 +561,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     alignItems: 'center',
     justifyContent: 'center',
   },

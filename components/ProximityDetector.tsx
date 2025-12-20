@@ -42,7 +42,7 @@ export default function ProximityDetector({
     return (
       <View style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#E53935" />
+          <ActivityIndicator size="large" color="#D50000" />
           <Text style={styles.loadingText}>Detecting your location...</Text>
         </View>
       </View>
@@ -83,7 +83,7 @@ export default function ProximityDetector({
             Visit the café to connect with people nearby
           </Text>
           <View style={styles.distanceContainer}>
-            <Navigation size={20} color="#E53935" />
+            <Navigation size={20} color="#D50000" />
             <Text style={[styles.distanceText, styles.distanceTextAway]}>
               {Math.round(distance)}m away
             </Text>
@@ -175,14 +175,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   distanceTextAway: {
-    color: '#E53935',
+    color: '#D50000',
   },
   showPeopleButton: {
-    backgroundColor: '#E53935',
+    backgroundColor: '#D50000',
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 25,
-    shadowColor: '#E53935',
+    shadowColor: '#D50000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
