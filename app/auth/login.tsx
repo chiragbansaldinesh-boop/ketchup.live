@@ -275,15 +275,15 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     fontSize: 14,
-    color: '#D50000',
+    color: '#E10600',
     fontWeight: '500',
   },
   loginButton: {
-    backgroundColor: '#D50000',
+    backgroundColor: '#E10600',
     paddingVertical: 16,
     borderRadius: 25,
     alignItems: 'center',
-    shadowColor: '#D50000',
+    shadowColor: '#E10600',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   signupLink: {
     fontSize: 16,
-    color: '#D50000',
+    color: '#E10600',
     fontWeight: '600',
   },
   divider: {

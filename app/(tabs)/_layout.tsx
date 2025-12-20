@@ -7,7 +7,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: '#D50000',
+        tabBarActiveTintColor: '#E10600',
         tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -33,7 +33,7 @@ export default function TabLayout() {
         options={{
           title: 'Discover',
           tabBarIcon: ({ size, color }) => (
-            <Heart size={size} color={color} fill={color === '#D50000' ? color : 'none'} />
+            <Heart size={size} color={color} fill={color === '#E10600' ? color : 'none'} />
           ),
         }}
       />
@@ -60,7 +60,7 @@ export default function TabLayout() {
         options={{
           title: 'Matches',
           tabBarIcon: ({ size, color }) => (
-            <MessageCircle size={size} color={color} fill={color === '#D50000' ? color : 'none'} />
+            <MessageCircle size={size} color={color} fill={color === '#E10600' ? color : 'none'} />
           ),
         }}
       />

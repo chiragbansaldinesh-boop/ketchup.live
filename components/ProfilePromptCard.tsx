@@ -14,7 +14,7 @@ export default function ProfilePromptCard({ prompt, answer, onLike }: ProfilePro
       <Text style={styles.prompt}>{prompt}</Text>
       <Text style={styles.answer}>{answer}</Text>
       <TouchableOpacity style={styles.likeButton} onPress={onLike}>
-        <Heart size={24} color="#D50000" />
+        <Heart size={24} color="#E10600" />
       </TouchableOpacity>
     </View>
   );
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   prompt: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#D50000',
+    color: '#E10600',
     marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,

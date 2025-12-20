@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#D50000',
+    backgroundColor: '#E10600',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   storyRingUnseen: {
-    borderColor: '#D50000',
+    borderColor: '#E10600',
   },
   storyImage: {
     width: 74,
