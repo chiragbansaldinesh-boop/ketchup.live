@@ -9,7 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { Stack } from 'expo-router';
-import { Bell, MapPin, Eye, EyeOff, Globe, Moon, Settings as SettingsIcon, Trash2, Shield, Crown, CreditCard, CircleHelp as HelpCircle, Heart, LogOut, ChevronRight } from 'lucide-react-native';
+import { Bell, MapPin, Eye, EyeOff, Globe, Moon, Settings as SettingsIcon, Trash2, Shield, Crown, CreditCard, CircleHelp as HelpCircle, Heart, LogOut, ChevronRight, Sparkles } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { colors, spacing, borderRadius, typography, shadows } from '@/constants/theme';
 
@@ -176,6 +176,14 @@ export default function SettingsScreen() {
     {
       title: 'App Preferences',
       items: [
+        {
+          id: '11',
+          icon: <Sparkles size={20} color={colors.primary.main} />,
+          title: 'AI Preferences',
+          subtitle: 'Customize AI assistant settings',
+          type: 'navigation',
+          onPress: () => router.push('/settings/ai-preferences'),
+        },
         {
           id: '12',
           icon: <Globe size={20} color={colors.text.secondary} />,

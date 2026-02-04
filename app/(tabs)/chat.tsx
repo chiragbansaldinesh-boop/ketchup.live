@@ -9,7 +9,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import { Send, MapPin, MoreVertical, Shield, TriangleAlert as AlertTriangle, ArrowLeft, Check, CheckCheck } from 'lucide-react-native';
+import { Send, MapPin, MoreVertical, Shield, TriangleAlert as AlertTriangle, ArrowLeft, Check, CheckCheck, Sparkles } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import BlockUserModal from '@/components/BlockUserModal';
@@ -17,6 +17,7 @@ import { privacyService } from '@/services/privacyService';
 import { colors, spacing, borderRadius, typography, shadows } from '@/constants/theme';
 import EmptyState from '@/components/ui/EmptyState';
 import { OnlineIndicator } from '@/components/ui/Badge';
+import AIChatAssistant from '@/components/AIChatAssistant';
 
 interface Chat {
   id: string;
@@ -87,6 +88,7 @@ export default function ChatScreen() {
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
+  const [showAIAssistant, setShowAIAssistant] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -132,6 +134,10 @@ export default function ChatScreen() {
       read: false,
     };
     setMessages(prev => [...prev, newMessage]);
+  };
+
+  const handleAISuggestion = (text: string) => {
+    setMessage(text);
   };
 
   const checkBlockStatus = async (userId: string) => {
@@ -230,6 +236,12 @@ export default function ChatScreen() {
             </View>
           </TouchableOpacity>
           <TouchableOpacity
+            style={[styles.aiToggleButton, showAIAssistant && styles.aiToggleButtonActive]}
+            onPress={() => setShowAIAssistant(!showAIAssistant)}
+          >
+            <Sparkles size={18} color={showAIAssistant ? colors.text.inverse : colors.primary.main} />
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.menuButton}
             onPress={() => setShowChatMenu(true)}
           >
@@ -293,24 +305,33 @@ export default function ChatScreen() {
               )}
             />
 
-            <View style={styles.icebreakerSection}>
-              <Text style={styles.icebreakerLabel}>Quick replies</Text>
-              <FlatList
-                horizontal
-                data={icebreakers}
-                keyExtractor={(item, index) => index.toString()}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.icebreakerList}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={styles.icebreakerButton}
-                    onPress={() => sendIcebreaker(item)}
-                  >
-                    <Text style={styles.icebreakerText}>{item}</Text>
-                  </TouchableOpacity>
-                )}
+            {showAIAssistant ? (
+              <AIChatAssistant
+                matchName={selectedChat.name}
+                matchInterests={[]}
+                messageCount={messages.length}
+                onSelectSuggestion={handleAISuggestion}
               />
-            </View>
+            ) : (
+              <View style={styles.icebreakerSection}>
+                <Text style={styles.icebreakerLabel}>Quick replies</Text>
+                <FlatList
+                  horizontal
+                  data={icebreakers}
+                  keyExtractor={(item, index) => index.toString()}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.icebreakerList}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={styles.icebreakerButton}
+                      onPress={() => sendIcebreaker(item)}
+                    >
+                      <Text style={styles.icebreakerText}>{item}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            )}
 
             <View style={styles.inputContainer}>
               <TextInput
@@ -546,6 +567,18 @@ const styles = StyleSheet.create({
     ...typography.small,
     color: colors.text.tertiary,
     marginLeft: spacing.xs,
+  },
+  aiToggleButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.secondary.light,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: spacing.sm,
+  },
+  aiToggleButtonActive: {
+    backgroundColor: colors.primary.main,
   },
   menuButton: {
     width: 40,

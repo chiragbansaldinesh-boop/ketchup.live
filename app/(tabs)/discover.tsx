@@ -15,6 +15,7 @@ import { Heart, X, Star, MapPin, BadgeCheck, Filter, ChevronLeft, ChevronRight }
 import { colors, spacing, borderRadius, typography, shadows } from '@/constants/theme';
 import ActionButtons from '@/components/ui/ActionButtons';
 import EmptyState from '@/components/ui/EmptyState';
+import AICompatibilityCard from '@/components/AICompatibilityCard';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - spacing.lg * 2;
@@ -34,7 +35,10 @@ interface Profile {
   occupation?: string;
   isVerified: boolean;
   prompts: ProfilePrompt[];
+  interests: string[];
 }
+
+const USER_INTERESTS = ['Photography', 'Coffee', 'Travel', 'Music', 'Hiking', 'Movies'];
 
 const MOCK_PROFILES: Profile[] = [
   {
@@ -54,6 +58,7 @@ const MOCK_PROFILES: Profile[] = [
       { question: 'My simple pleasures', answer: 'Sunday morning coffee, vinyl records, and long walks with no destination in mind.' },
       { question: 'A life goal of mine', answer: 'To visit every national park in the country and document each one through photography.' },
     ],
+    interests: ['Photography', 'Coffee', 'Design', 'Hiking', 'Travel'],
   },
   {
     id: '2',
@@ -70,6 +75,7 @@ const MOCK_PROFILES: Profile[] = [
       { question: 'The way to win me over is', answer: 'Good conversation over good food. Bonus points if you can make me laugh.' },
       { question: 'I geek out on', answer: 'True crime podcasts, cooking shows, and planning elaborate dinner parties.' },
     ],
+    interests: ['Cooking', 'Podcasts', 'Wine', 'Travel', 'Movies'],
   },
   {
     id: '3',
@@ -86,6 +92,7 @@ const MOCK_PROFILES: Profile[] = [
     prompts: [
       { question: 'Dating me is like', answer: 'Getting a new best friend who also happens to be great at giving massages.' },
     ],
+    interests: ['Yoga', 'Reading', 'Wellness', 'Music', 'Nature'],
   },
 ];
 
@@ -272,6 +279,12 @@ export default function DiscoverScreen() {
             <Text style={styles.bioText}>{currentProfile.bio}</Text>
           </View>
         )}
+
+        <AICompatibilityCard
+          userInterests={USER_INTERESTS}
+          matchInterests={currentProfile.interests}
+          matchName={currentProfile.name}
+        />
 
         {currentProfile.prompts.map((prompt, index) => (
           <View key={index} style={styles.promptCard}>
