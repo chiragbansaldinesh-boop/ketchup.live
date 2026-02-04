@@ -4,7 +4,7 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
-import { Sparkles, Heart, MessageCircle, Star } from 'lucide-react-native';
+import { Flame, Heart, MessageCircle, Droplets } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, borderRadius, typography, shadows } from '@/constants/theme';
 import { calculateCompatibility } from '@/services/aiConversationService';
@@ -25,33 +25,35 @@ export default function AICompatibilityCard({
   }, [userInterests, matchInterests]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return colors.success.main;
-    if (score >= 60) return colors.accent.gold;
-    if (score >= 40) return colors.primary.main;
-    return colors.text.tertiary;
+    if (score >= 80) return '#DC143C';
+    if (score >= 60) return '#FF4500';
+    if (score >= 40) return '#FF8C00';
+    return '#FFB347';
   };
 
   const getScoreLabel = (score: number) => {
-    if (score >= 80) return 'Excellent Match';
-    if (score >= 60) return 'Great Potential';
-    if (score >= 40) return 'Good Connection';
-    return 'Worth Exploring';
+    if (score >= 80) return 'Sizzling Hot';
+    if (score >= 60) return 'Heating Up';
+    if (score >= 40) return 'Warming Up';
+    return 'Sweet Start';
   };
+
+  const scoreColor = getScoreColor(compatibility.score);
 
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[colors.primary.main + '15', colors.accent.gold + '10']}
+        colors={['#FF4500' + '15', '#FFB347' + '10']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.gradient}
       />
 
       <View style={styles.header}>
-        <View style={styles.aiIconContainer}>
-          <Sparkles size={16} color={colors.text.inverse} />
+        <View style={[styles.aiIconContainer, { backgroundColor: scoreColor }]}>
+          <Flame size={16} color={colors.text.inverse} />
         </View>
-        <Text style={styles.headerTitle}>AI Compatibility</Text>
+        <Text style={styles.headerTitle}>Flavor Match</Text>
       </View>
 
       <View style={styles.scoreSection}>
@@ -85,13 +87,13 @@ export default function AICompatibilityCard({
 
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <MessageCircle size={14} color={colors.accent.mint} />
-          <Text style={styles.sectionTitle}>Conversation Starters</Text>
+          <MessageCircle size={14} color="#FF4500" />
+          <Text style={styles.sectionTitle}>Flavor Starters</Text>
         </View>
         <View style={styles.startersContainer}>
           {compatibility.conversationStarters.map((starter, index) => (
             <View key={index} style={styles.starterItem}>
-              <Star size={12} color={colors.accent.gold} fill={colors.accent.gold} />
+              <Droplets size={12} color="#FF8C00" />
               <Text style={styles.starterText}>{starter}</Text>
             </View>
           ))}
@@ -136,7 +138,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: colors.primary.main,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -197,14 +198,14 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   tag: {
-    backgroundColor: colors.primary.main + '20',
+    backgroundColor: '#FF4500' + '20',
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
   },
   tagText: {
     ...typography.small,
-    color: colors.primary.main,
+    color: '#FF4500',
     fontWeight: '500',
   },
   startersContainer: {
@@ -228,14 +229,14 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
   },
   strengthBadge: {
-    backgroundColor: colors.accent.mint + '20',
+    backgroundColor: '#FFB347' + '20',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: borderRadius.full,
   },
   strengthText: {
     ...typography.small,
-    color: colors.accent.mint,
+    color: '#FF8C00',
     fontWeight: '500',
   },
 });

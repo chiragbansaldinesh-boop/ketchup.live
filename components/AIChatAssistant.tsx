@@ -7,7 +7,7 @@ import {
   ScrollView,
   Animated,
 } from 'react-native';
-import { Sparkles, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react-native';
+import { Flame, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react-native';
 import { colors, spacing, borderRadius, typography, shadows } from '@/constants/theme';
 import {
   getContextualSuggestions,
@@ -19,6 +19,13 @@ import {
   QuestionLevel,
   DEFAULT_AI_PREFERENCES,
 } from '@/types/ai';
+
+const HEAT_COLORS = {
+  sweet: '#FFB347',
+  mild: '#FF8C00',
+  spicy: '#FF4500',
+  hot_sauce: '#DC143C',
+};
 
 interface AIChatAssistantProps {
   matchName: string;
@@ -35,7 +42,7 @@ export default function AIChatAssistant({
 }: AIChatAssistantProps) {
   const [isExpanded, setIsExpanded] = useState(true);
   const [suggestions, setSuggestions] = useState<AISuggestion[]>([]);
-  const [currentLevel, setCurrentLevel] = useState<QuestionLevel>('icebreaker');
+  const [currentLevel, setCurrentLevel] = useState<QuestionLevel>('sweet');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const rotateAnim = useState(new Animated.Value(0))[0];
 
@@ -50,10 +57,10 @@ export default function AIChatAssistant({
     const newSuggestions = getContextualSuggestions(context, 3);
     setSuggestions(newSuggestions);
 
-    if (messageCount < 5) setCurrentLevel('icebreaker');
-    else if (messageCount < 15) setCurrentLevel('casual');
-    else if (messageCount < 30) setCurrentLevel('deeper');
-    else setCurrentLevel('serious');
+    if (messageCount < 5) setCurrentLevel('sweet');
+    else if (messageCount < 15) setCurrentLevel('mild');
+    else if (messageCount < 30) setCurrentLevel('spicy');
+    else setCurrentLevel('hot_sauce');
   };
 
   useEffect(() => {
@@ -79,9 +86,9 @@ export default function AIChatAssistant({
       matchName,
       matchInterests,
       conversationHistory: Array(
-        level === 'icebreaker' ? 0 :
-        level === 'casual' ? 10 :
-        level === 'deeper' ? 20 : 35
+        level === 'sweet' ? 0 :
+        level === 'mild' ? 10 :
+        level === 'spicy' ? 20 : 35
       ).fill(''),
       userPreferences: DEFAULT_AI_PREFERENCES,
     };
@@ -94,6 +101,8 @@ export default function AIChatAssistant({
     outputRange: ['0deg', '360deg'],
   });
 
+  const currentHeatColor = HEAT_COLORS[currentLevel];
+
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -102,12 +111,12 @@ export default function AIChatAssistant({
         activeOpacity={0.8}
       >
         <View style={styles.headerLeft}>
-          <View style={styles.aiIconContainer}>
-            <Sparkles size={16} color={colors.text.inverse} />
+          <View style={[styles.aiIconContainer, { backgroundColor: currentHeatColor }]}>
+            <Flame size={16} color={colors.text.inverse} />
           </View>
           <View>
-            <Text style={styles.headerTitle}>AI Assistant</Text>
-            <Text style={styles.headerSubtitle}>
+            <Text style={styles.headerTitle}>Flavor Assistant</Text>
+            <Text style={[styles.headerSubtitle, { color: currentHeatColor }]}>
               {levelInfo.emoji} {levelInfo.title}
             </Text>
           </View>
@@ -140,14 +149,22 @@ export default function AIChatAssistant({
             {QUESTION_LEVELS.map((level) => {
               const info = getQuestionLevelInfo(level);
               const isActive = level === currentLevel;
+              const heatColor = HEAT_COLORS[level];
               return (
                 <TouchableOpacity
                   key={level}
-                  style={[styles.levelButton, isActive && styles.levelButtonActive]}
+                  style={[
+                    styles.levelButton,
+                    isActive && { backgroundColor: heatColor }
+                  ]}
                   onPress={() => handleSelectLevel(level)}
                 >
                   <Text style={styles.levelEmoji}>{info.emoji}</Text>
-                  <Text style={[styles.levelText, isActive && styles.levelTextActive]}>
+                  <Text style={[
+                    styles.levelText,
+                    isActive && styles.levelTextActive,
+                    !isActive && { color: heatColor }
+                  ]}>
                     {info.title}
                   </Text>
                 </TouchableOpacity>
@@ -182,11 +199,11 @@ export default function AIChatAssistant({
 
 function getToneBadgeStyle(tone: string) {
   const toneColors: Record<string, { backgroundColor: string }> = {
-    playful: { backgroundColor: colors.accent.gold + '30' },
-    witty: { backgroundColor: colors.accent.mint + '30' },
-    genuine: { backgroundColor: colors.primary.light + '30' },
-    flirty: { backgroundColor: colors.accent.rose + '30' },
-    thoughtful: { backgroundColor: colors.secondary.main + '30' },
+    tangy: { backgroundColor: '#FFB347' + '30' },
+    zesty: { backgroundColor: '#FF8C00' + '30' },
+    sweet: { backgroundColor: '#FDCB6E' + '30' },
+    hot: { backgroundColor: '#FF4500' + '30' },
+    smoky: { backgroundColor: '#8B4513' + '30' },
   };
   return toneColors[tone] || { backgroundColor: colors.background.tertiary };
 }
@@ -213,7 +230,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.primary.main,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -254,9 +270,6 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.full,
     backgroundColor: colors.background.tertiary,
     gap: spacing.xs,
-  },
-  levelButtonActive: {
-    backgroundColor: colors.primary.main,
   },
   levelEmoji: {
     fontSize: 14,

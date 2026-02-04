@@ -8,18 +8,25 @@ import {
   Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Sparkles, MessageCircle, Brain, Zap, Heart } from 'lucide-react-native';
+import { ArrowLeft, Flame, Droplets, Citrus, Thermometer, Cloud } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { colors, spacing, borderRadius, typography, shadows } from '@/constants/theme';
 import { ConversationTone, DEFAULT_AI_PREFERENCES } from '@/types/ai';
 import { getQuestionLevelInfo, QUESTION_LEVELS } from '@/services/aiConversationService';
 
-const TONE_OPTIONS: { value: ConversationTone; label: string; description: string; icon: React.ReactNode }[] = [
-  { value: 'genuine', label: 'Genuine', description: 'Authentic and sincere responses', icon: <Heart size={20} color={colors.primary.main} /> },
-  { value: 'playful', label: 'Playful', description: 'Fun and lighthearted suggestions', icon: <Zap size={20} color={colors.accent.gold} /> },
-  { value: 'witty', label: 'Witty', description: 'Clever and sharp conversation', icon: <Brain size={20} color={colors.accent.mint} /> },
-  { value: 'flirty', label: 'Flirty', description: 'Charming and romantic tone', icon: <Heart size={20} color={colors.accent.rose} /> },
-  { value: 'thoughtful', label: 'Thoughtful', description: 'Deep and meaningful exchanges', icon: <MessageCircle size={20} color={colors.secondary.main} /> },
+const HEAT_COLORS = {
+  sweet: '#FFB347',
+  mild: '#FF8C00',
+  spicy: '#FF4500',
+  hot_sauce: '#DC143C',
+};
+
+const TONE_OPTIONS: { value: ConversationTone; label: string; description: string; icon: React.ReactNode; color: string }[] = [
+  { value: 'sweet', label: 'Sweet', description: 'Warm and sincere flavor', icon: <Droplets size={20} color="#FDCB6E" />, color: '#FDCB6E' },
+  { value: 'tangy', label: 'Tangy', description: 'Fun and zesty suggestions', icon: <Citrus size={20} color="#FFB347" />, color: '#FFB347' },
+  { value: 'zesty', label: 'Zesty', description: 'Clever and sharp with a kick', icon: <Thermometer size={20} color="#FF8C00" />, color: '#FF8C00' },
+  { value: 'hot', label: 'Hot', description: 'Charming with extra heat', icon: <Flame size={20} color="#FF4500" />, color: '#FF4500' },
+  { value: 'smoky', label: 'Smoky', description: 'Deep and rich flavor', icon: <Cloud size={20} color="#8B4513" />, color: '#8B4513' },
 ];
 
 export default function AIPreferencesScreen() {
@@ -50,11 +57,11 @@ export default function AIPreferencesScreen() {
       >
         <View style={styles.heroSection}>
           <View style={styles.heroIcon}>
-            <Sparkles size={32} color={colors.text.inverse} />
+            <Flame size={32} color={colors.text.inverse} />
           </View>
-          <Text style={styles.heroTitle}>Your AI Assistant</Text>
+          <Text style={styles.heroTitle}>Flavor Assistant</Text>
           <Text style={styles.heroSubtitle}>
-            Customize how AI helps you with conversations and finding matches
+            Customize your conversation heat level and flavor preferences
           </Text>
         </View>
 
@@ -93,9 +100,9 @@ export default function AIPreferencesScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Conversation Tone</Text>
+          <Text style={styles.sectionTitle}>Flavor Profile</Text>
           <Text style={styles.sectionSubtitle}>
-            Choose your preferred style for AI suggestions
+            Choose your preferred conversation flavor
           </Text>
 
           {TONE_OPTIONS.map((option) => (
@@ -130,22 +137,23 @@ export default function AIPreferencesScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Question Levels</Text>
+          <Text style={styles.sectionTitle}>Heat Levels</Text>
           <Text style={styles.sectionSubtitle}>
-            AI automatically progresses through these levels as your conversation deepens
+            Conversations naturally heat up as you get to know each other
           </Text>
 
           {QUESTION_LEVELS.map((level, index) => {
             const info = getQuestionLevelInfo(level);
+            const heatColor = HEAT_COLORS[level];
             return (
               <View key={level} style={styles.levelItem}>
-                <View style={styles.levelNumber}>
+                <View style={[styles.levelNumber, { backgroundColor: heatColor }]}>
                   <Text style={styles.levelNumberText}>{index + 1}</Text>
                 </View>
                 <View style={styles.levelInfo}>
                   <View style={styles.levelHeader}>
                     <Text style={styles.levelEmoji}>{info.emoji}</Text>
-                    <Text style={styles.levelTitle}>{info.title}</Text>
+                    <Text style={[styles.levelTitle, { color: heatColor }]}>{info.title}</Text>
                   </View>
                   <Text style={styles.levelDescription}>{info.description}</Text>
                 </View>
@@ -155,9 +163,9 @@ export default function AIPreferencesScreen() {
         </View>
 
         <View style={styles.infoCard}>
-          <Sparkles size={20} color={colors.primary.main} />
+          <Flame size={20} color="#FF4500" />
           <Text style={styles.infoText}>
-            Your AI assistant learns from your preferences to provide better suggestions over time.
+            Your Flavor Assistant learns your taste preferences to serve up better conversation starters over time.
           </Text>
         </View>
       </ScrollView>
@@ -209,7 +217,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: colors.primary.main,
+    backgroundColor: '#FF4500',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: spacing.lg,
@@ -324,7 +332,6 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: colors.primary.main,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: spacing.md,

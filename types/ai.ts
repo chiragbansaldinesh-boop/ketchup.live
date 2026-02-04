@@ -1,6 +1,6 @@
-export type QuestionLevel = 'icebreaker' | 'casual' | 'deeper' | 'serious';
+export type QuestionLevel = 'sweet' | 'mild' | 'spicy' | 'hot_sauce';
 
-export type ConversationTone = 'playful' | 'witty' | 'genuine' | 'flirty' | 'thoughtful';
+export type ConversationTone = 'tangy' | 'zesty' | 'sweet' | 'hot' | 'smoky';
 
 export interface AISuggestion {
   id: string;
@@ -37,7 +37,7 @@ export interface AIResponse {
 }
 
 export const DEFAULT_AI_PREFERENCES: AIUserPreferences = {
-  preferredTone: 'genuine',
+  preferredTone: 'sweet',
   autoSuggest: true,
   suggestionCount: 3,
 };
