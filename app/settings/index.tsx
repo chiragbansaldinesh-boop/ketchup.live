@@ -9,8 +9,9 @@ import {
   Alert,
 } from 'react-native';
 import { Stack } from 'expo-router';
-import { ArrowLeft, Bell, MapPin, Eye, EyeOff, Globe, Moon, Settings as SettingsIcon, Trash2, Shield, Crown, CreditCard, CircleHelp as HelpCircle, Heart, LogOut } from 'lucide-react-native';
+import { Bell, MapPin, Eye, EyeOff, Globe, Moon, Settings as SettingsIcon, Trash2, Shield, Crown, CreditCard, CircleHelp as HelpCircle, Heart, LogOut, ChevronRight } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { colors, spacing, borderRadius, typography, shadows } from '@/constants/theme';
 
 interface SettingItem {
   id: string;
@@ -43,11 +44,10 @@ export default function SettingsScreen() {
       'Are you sure you want to permanently delete your account? This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Delete', 
+        {
+          text: 'Delete',
           style: 'destructive',
           onPress: () => {
-            // Handle account deletion
             Alert.alert('Account Deleted', 'Your account has been permanently deleted.');
           }
         },
@@ -61,11 +61,10 @@ export default function SettingsScreen() {
       'Are you sure you want to log out?',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Log Out', 
+        {
+          text: 'Log Out',
           onPress: () => {
-            // Handle logout
-            Alert.alert('Logged Out', 'You have been logged out successfully.');
+            router.replace('/auth/login');
           }
         },
       ]
@@ -78,7 +77,7 @@ export default function SettingsScreen() {
       items: [
         {
           id: '1',
-          icon: <MapPin size={20} color="#374151" />,
+          icon: <MapPin size={20} color={colors.text.secondary} />,
           title: 'Show Venue Check-ins',
           subtitle: 'Let others see where you\'ve been',
           type: 'toggle',
@@ -87,7 +86,7 @@ export default function SettingsScreen() {
         },
         {
           id: '2',
-          icon: <SettingsIcon size={20} color="#374151" />,
+          icon: <SettingsIcon size={20} color={colors.text.secondary} />,
           title: 'Auto Check-in',
           subtitle: 'Automatically check-in when scanning QR',
           type: 'toggle',
@@ -96,7 +95,7 @@ export default function SettingsScreen() {
         },
         {
           id: '3',
-          icon: blurPhoto ? <EyeOff size={20} color="#374151" /> : <Eye size={20} color="#374151" />,
+          icon: blurPhoto ? <EyeOff size={20} color={colors.text.secondary} /> : <Eye size={20} color={colors.text.secondary} />,
           title: 'Blur Photo Until Match',
           subtitle: 'Hide your photo until mutual like',
           type: 'toggle',
@@ -105,10 +104,11 @@ export default function SettingsScreen() {
         },
         {
           id: '4',
-          icon: <Shield size={20} color="#374151" />,
+          icon: <Shield size={20} color={colors.text.secondary} />,
           title: 'Hidden Venues',
           subtitle: 'Manage venues where you won\'t appear',
           type: 'navigation',
+          onPress: () => router.push('/settings/hidden-venues'),
         },
       ],
     },
@@ -117,7 +117,7 @@ export default function SettingsScreen() {
       items: [
         {
           id: '5',
-          icon: <Bell size={20} color="#374151" />,
+          icon: <Bell size={20} color={colors.text.secondary} />,
           title: 'Match Notifications',
           subtitle: 'Get notified of new matches',
           type: 'toggle',
@@ -126,7 +126,7 @@ export default function SettingsScreen() {
         },
         {
           id: '6',
-          icon: <MapPin size={20} color="#374151" />,
+          icon: <MapPin size={20} color={colors.text.secondary} />,
           title: 'Venue Reminders',
           subtitle: 'Reminders when check-in expires',
           type: 'toggle',
@@ -135,7 +135,7 @@ export default function SettingsScreen() {
         },
         {
           id: '7',
-          icon: <Heart size={20} color="#374151" />,
+          icon: <Heart size={20} color={colors.text.secondary} />,
           title: 'Game Invites',
           subtitle: 'Notifications for game invitations',
           type: 'toggle',
@@ -149,7 +149,7 @@ export default function SettingsScreen() {
       items: [
         {
           id: '8',
-          icon: <Shield size={20} color="#374151" />,
+          icon: <Shield size={20} color={colors.text.secondary} />,
           title: 'Blocked Users',
           subtitle: 'Manage blocked accounts',
           type: 'navigation',
@@ -157,7 +157,7 @@ export default function SettingsScreen() {
         },
         {
           id: '9',
-          icon: <Shield size={20} color="#374151" />,
+          icon: <Shield size={20} color={colors.text.secondary} />,
           title: 'Privacy Policy',
           subtitle: 'Read our privacy policy',
           type: 'navigation',
@@ -165,18 +165,11 @@ export default function SettingsScreen() {
         },
         {
           id: '10',
-          icon: <Shield size={20} color="#374151" />,
+          icon: <Shield size={20} color={colors.text.secondary} />,
           title: 'Safety Tips',
           subtitle: 'Learn how to stay safe',
           type: 'navigation',
           onPress: () => router.push('/settings/safety-tips'),
-        },
-        {
-          id: '11',
-          icon: <Shield size={20} color="#374151" />,
-          title: 'Terms of Service',
-          subtitle: 'Read our terms of service',
-          type: 'navigation',
         },
       ],
     },
@@ -185,26 +178,19 @@ export default function SettingsScreen() {
       items: [
         {
           id: '12',
-          icon: <Globe size={20} color="#374151" />,
+          icon: <Globe size={20} color={colors.text.secondary} />,
           title: 'Language',
           subtitle: 'English',
           type: 'navigation',
         },
         {
           id: '13',
-          icon: <Moon size={20} color="#374151" />,
+          icon: <Moon size={20} color={colors.text.secondary} />,
           title: 'Dark Mode',
           subtitle: 'Switch to dark theme',
           type: 'toggle',
           value: darkMode,
           onPress: () => setDarkMode(!darkMode),
-        },
-        {
-          id: '14',
-          icon: <SettingsIcon size={20} color="#374151" />,
-          title: 'Manage Data & Cache',
-          subtitle: 'Clear app data and cache',
-          type: 'navigation',
         },
       ],
     },
@@ -213,14 +199,15 @@ export default function SettingsScreen() {
       items: [
         {
           id: '15',
-          icon: <Crown size={20} color="#F59E0B" />,
+          icon: <Crown size={20} color={colors.accent.gold} />,
           title: 'Ketchup Premium',
           subtitle: 'Upgrade to premium features',
           type: 'navigation',
+          onPress: () => router.push('/settings/subscription'),
         },
         {
           id: '16',
-          icon: <CreditCard size={20} color="#374151" />,
+          icon: <CreditCard size={20} color={colors.text.secondary} />,
           title: 'Payment Methods',
           subtitle: 'Manage billing information',
           type: 'navigation',
@@ -232,23 +219,16 @@ export default function SettingsScreen() {
       items: [
         {
           id: '17',
-          icon: <HelpCircle size={20} color="#374151" />,
+          icon: <HelpCircle size={20} color={colors.text.secondary} />,
           title: 'Help & FAQ',
           subtitle: 'Get answers to common questions',
           type: 'navigation',
         },
         {
           id: '18',
-          icon: <Heart size={20} color="#374151" />,
+          icon: <Heart size={20} color={colors.text.secondary} />,
           title: 'Contact Support',
           subtitle: 'Get help from our team',
-          type: 'navigation',
-        },
-        {
-          id: '19',
-          icon: <SettingsIcon size={20} color="#374151" />,
-          title: 'Submit Feedback',
-          subtitle: 'Help us improve the app',
           type: 'navigation',
         },
       ],
@@ -258,7 +238,7 @@ export default function SettingsScreen() {
       items: [
         {
           id: '20',
-          icon: <LogOut size={20} color="#DC2626" />,
+          icon: <LogOut size={20} color={colors.error.main} />,
           title: 'Log Out',
           subtitle: 'Sign out of your account',
           type: 'action',
@@ -267,7 +247,7 @@ export default function SettingsScreen() {
         },
         {
           id: '21',
-          icon: <Trash2 size={20} color="#DC2626" />,
+          icon: <Trash2 size={20} color={colors.error.main} />,
           title: 'Delete Account',
           subtitle: 'Permanently delete your account',
           type: 'action',
@@ -279,10 +259,11 @@ export default function SettingsScreen() {
   ];
 
   const renderSettingItem = (item: SettingItem) => (
-    <TouchableOpacity 
+    <TouchableOpacity
       key={item.id}
       style={styles.settingItem}
       onPress={item.onPress}
+      activeOpacity={0.7}
     >
       <View style={styles.settingLeft}>
         <View style={[styles.settingIcon, item.destructive && styles.destructiveIcon]}>
@@ -301,24 +282,25 @@ export default function SettingsScreen() {
         <Switch
           value={item.value}
           onValueChange={item.onPress}
-          trackColor={{ false: '#D1D5DB', true: '#FEE2E2' }}
-          thumbColor={item.value ? '#D50000' : '#F3F4F6'}
+          trackColor={{ false: colors.border.medium, true: colors.primary.light }}
+          thumbColor={colors.background.primary}
         />
       ) : (
-        <Text style={styles.settingArrow}>›</Text>
+        <ChevronRight size={20} color={colors.text.tertiary} />
       )}
     </TouchableOpacity>
   );
 
   return (
     <>
-      <Stack.Screen 
-        options={{ 
+      <Stack.Screen
+        options={{
           title: 'Settings',
           headerShown: true,
-          headerStyle: { backgroundColor: '#FFFFFF' },
-          headerTitleStyle: { fontSize: 18, fontWeight: '600' },
-        }} 
+          headerStyle: { backgroundColor: colors.background.primary },
+          headerTitleStyle: { ...typography.h4, color: colors.text.primary },
+          headerShadowVisible: false,
+        }}
       />
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {settingSections.map((section, index) => (
@@ -336,10 +318,10 @@ export default function SettingsScreen() {
             </View>
           </View>
         ))}
-        
+
         <View style={styles.footer}>
-          <Text style={styles.version}>Ketchup.live v1.0.0</Text>
-          <Text style={styles.copyright}>© 2025 Ketchup Technologies</Text>
+          <Text style={styles.version}>Ketchup v1.0.0</Text>
+          <Text style={styles.copyright}>Made with love</Text>
         </View>
       </ScrollView>
     </>
@@ -349,30 +331,32 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.background.secondary,
   },
   section: {
-    marginTop: 32,
-    marginHorizontal: 20,
+    marginTop: spacing.xl,
+    marginHorizontal: spacing.lg,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#374151',
-    marginBottom: 12,
-    paddingHorizontal: 4,
+    ...typography.captionMedium,
+    color: colors.text.tertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.sm,
+    paddingHorizontal: spacing.xs,
   },
   sectionItems: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    backgroundColor: colors.background.primary,
+    borderRadius: borderRadius.lg,
     overflow: 'hidden',
+    ...shadows.sm,
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.lg,
   },
   settingLeft: {
     flexDirection: 'row',
@@ -383,52 +367,46 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: spacing.md,
   },
   destructiveIcon: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: colors.secondary.light,
   },
   settingText: {
     flex: 1,
   },
   settingTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
+    ...typography.bodyMedium,
+    color: colors.text.primary,
     marginBottom: 2,
   },
   destructiveText: {
-    color: '#DC2626',
+    color: colors.error.main,
   },
   settingSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  settingArrow: {
-    fontSize: 24,
-    color: '#9CA3AF',
-    fontWeight: '300',
+    ...typography.caption,
+    color: colors.text.tertiary,
   },
   separator: {
     height: 1,
-    backgroundColor: '#F3F4F6',
-    marginLeft: 76,
+    backgroundColor: colors.border.light,
+    marginLeft: 72,
   },
   footer: {
     alignItems: 'center',
-    paddingVertical: 40,
-    marginHorizontal: 20,
+    paddingVertical: spacing.xxxl,
+    marginHorizontal: spacing.lg,
   },
   version: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginBottom: 4,
+    ...typography.caption,
+    color: colors.text.tertiary,
+    marginBottom: spacing.xs,
   },
   copyright: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    ...typography.caption,
+    color: colors.text.tertiary,
   },
 });

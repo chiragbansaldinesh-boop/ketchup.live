@@ -10,11 +10,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { supabaseAuthService } from '@/services/supabaseAuthService';
 import { router } from 'expo-router';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react-native';
+import { Mail, Lock, Eye, EyeOff, Heart } from 'lucide-react-native';
+import { colors, spacing, borderRadius, typography, shadows, gradients } from '@/constants/theme';
 
 export default function LoginScreen() {
   const [formData, setFormData] = useState({
@@ -51,13 +54,11 @@ export default function LoginScreen() {
       const result = await supabaseAuthService.signIn(formData.email, formData.password);
 
       if (result.success) {
-        Alert.alert('Success', 'Welcome back to Ketchup.live!', [
-          { text: 'OK', onPress: () => router.replace('/(tabs)') }
-        ]);
+        router.replace('/(tabs)/discover');
       } else {
         Alert.alert('Login Failed', result.error || 'An error occurred during login.');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Login error:', error);
       Alert.alert('Login Failed', 'An unexpected error occurred. Please try again.');
     } finally {
@@ -71,15 +72,14 @@ export default function LoginScreen() {
       const result = await supabaseAuthService.signInWithGoogle();
 
       if (result.success) {
-        Alert.alert('Success', 'Welcome to Ketchup.live!', [
-          { text: 'OK', onPress: () => router.replace('/(tabs)') }
-        ]);
+        router.replace('/(tabs)/discover');
       } else {
         Alert.alert('Sign In Failed', result.error || 'Could not sign in with Google');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Google Sign-In error:', error);
-      Alert.alert('Sign In Failed', error.message || 'An error occurred during Google Sign-In');
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred during Google Sign-In';
+      Alert.alert('Sign In Failed', errorMessage);
     } finally {
       setGoogleLoading(false);
     }
@@ -87,7 +87,6 @@ export default function LoginScreen() {
 
   const updateFormData = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }
@@ -99,23 +98,35 @@ export default function LoginScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Welcome Back</Text>
-            <Text style={styles.subtitle}>
-              Sign in to continue connecting with people nearby
-            </Text>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.logoSection}>
+            <View style={styles.logoContainer}>
+              <LinearGradient
+                colors={gradients.primary as [string, string]}
+                style={styles.logoBackground}
+              >
+                <Heart size={40} color={colors.text.inverse} fill={colors.text.inverse} />
+              </LinearGradient>
+            </View>
+            <Text style={styles.appName}>Ketchup</Text>
+            <Text style={styles.tagline}>Connect with people nearby</Text>
           </View>
 
           <View style={styles.form}>
+            <Text style={styles.title}>Welcome back</Text>
+
             <View style={styles.inputContainer}>
               <View style={styles.inputIcon}>
-                <Mail size={20} color="#6B7280" />
+                <Mail size={20} color={colors.text.tertiary} />
               </View>
               <TextInput
                 style={[styles.input, errors.email && styles.inputError]}
                 placeholder="Email Address"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.text.tertiary}
                 value={formData.email}
                 onChangeText={(text) => updateFormData('email', text)}
                 keyboardType="email-address"
@@ -127,12 +138,12 @@ export default function LoginScreen() {
 
             <View style={styles.inputContainer}>
               <View style={styles.inputIcon}>
-                <Lock size={20} color="#6B7280" />
+                <Lock size={20} color={colors.text.tertiary} />
               </View>
               <TextInput
                 style={[styles.input, errors.password && styles.inputError]}
                 placeholder="Password"
-                placeholderTextColor="#9CA3AF"
+                placeholderTextColor={colors.text.tertiary}
                 value={formData.password}
                 onChangeText={(text) => updateFormData('password', text)}
                 secureTextEntry={!showPassword}
@@ -143,9 +154,9 @@ export default function LoginScreen() {
                 onPress={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? (
-                  <EyeOff size={20} color="#6B7280" />
+                  <EyeOff size={20} color={colors.text.tertiary} />
                 ) : (
-                  <Eye size={20} color="#6B7280" />
+                  <Eye size={20} color={colors.text.tertiary} />
                 )}
               </TouchableOpacity>
             </View>
@@ -161,7 +172,7 @@ export default function LoginScreen() {
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color={colors.text.inverse} />
               ) : (
                 <Text style={styles.loginButtonText}>Sign In</Text>
               )}
@@ -169,7 +180,7 @@ export default function LoginScreen() {
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>or continue with</Text>
+              <Text style={styles.dividerText}>or</Text>
               <View style={styles.dividerLine} />
             </View>
 
@@ -179,14 +190,14 @@ export default function LoginScreen() {
               disabled={googleLoading}
             >
               {googleLoading ? (
-                <ActivityIndicator size="small" color="#374151" />
+                <ActivityIndicator size="small" color={colors.text.primary} />
               ) : (
                 <>
                   <Image
                     source={{ uri: 'https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg' }}
                     style={styles.googleIcon}
                   />
-                  <Text style={styles.googleButtonText}>Sign in with Google</Text>
+                  <Text style={styles.googleButtonText}>Continue with Google</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -194,11 +205,11 @@ export default function LoginScreen() {
             <View style={styles.signupPrompt}>
               <Text style={styles.signupPromptText}>Don't have an account? </Text>
               <TouchableOpacity onPress={() => router.push('/auth/signup')}>
-                <Text style={styles.signupLink}>Create Account</Text>
+                <Text style={styles.signupLink}>Sign Up</Text>
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -207,140 +218,129 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.background.primary,
   },
   keyboardView: {
     flex: 1,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: spacing.xl,
+    paddingBottom: spacing.xxxl,
   },
-  header: {
+  logoSection: {
     alignItems: 'center',
-    marginBottom: 40,
+    paddingTop: spacing.huge,
+    paddingBottom: spacing.xxxl,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#374151',
-    marginBottom: 8,
+  logoContainer: {
+    marginBottom: spacing.lg,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-    textAlign: 'center',
-    lineHeight: 24,
+  logoBackground: {
+    width: 80,
+    height: 80,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.lg,
+  },
+  appName: {
+    ...typography.h1,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  tagline: {
+    ...typography.body,
+    color: colors.text.secondary,
   },
   form: {
-    width: '100%',
+    flex: 1,
+  },
+  title: {
+    ...typography.h2,
+    color: colors.text.primary,
+    marginBottom: spacing.xl,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginBottom: 8,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.sm,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: colors.border.light,
   },
   inputIcon: {
-    paddingLeft: 16,
-    paddingRight: 12,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.md,
   },
   input: {
     flex: 1,
-    paddingVertical: 16,
-    paddingRight: 16,
-    fontSize: 16,
-    color: '#374151',
+    paddingVertical: spacing.lg,
+    paddingRight: spacing.lg,
+    ...typography.body,
+    color: colors.text.primary,
   },
   inputError: {
-    borderColor: '#DC2626',
+    borderColor: colors.error.main,
   },
   passwordToggle: {
-    paddingRight: 16,
-    paddingLeft: 12,
+    paddingRight: spacing.lg,
+    paddingLeft: spacing.md,
   },
   errorText: {
-    fontSize: 14,
-    color: '#DC2626',
-    marginBottom: 16,
-    marginLeft: 4,
+    ...typography.caption,
+    color: colors.error.main,
+    marginBottom: spacing.md,
+    marginLeft: spacing.xs,
   },
   forgotPassword: {
     alignSelf: 'flex-end',
-    marginBottom: 24,
+    marginBottom: spacing.xl,
   },
   forgotPasswordText: {
-    fontSize: 14,
-    color: '#E10600',
-    fontWeight: '500',
+    ...typography.captionMedium,
+    color: colors.primary.main,
   },
   loginButton: {
-    backgroundColor: '#E10600',
-    paddingVertical: 16,
-    borderRadius: 25,
+    backgroundColor: colors.primary.main,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
-    shadowColor: '#E10600',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    ...shadows.colored(colors.primary.main),
   },
   loginButtonDisabled: {
     opacity: 0.6,
   },
   loginButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  signupPrompt: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 32,
-  },
-  signupPromptText: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  signupLink: {
-    fontSize: 16,
-    color: '#E10600',
-    fontWeight: '600',
+    ...typography.bodySemibold,
+    color: colors.text.inverse,
   },
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 24,
+    marginVertical: spacing.xl,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: colors.border.light,
   },
   dividerText: {
-    marginHorizontal: 16,
-    fontSize: 14,
-    color: '#6B7280',
+    marginHorizontal: spacing.lg,
+    ...typography.caption,
+    color: colors.text.tertiary,
   },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
-    borderRadius: 25,
+    backgroundColor: colors.background.primary,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.lg,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderColor: colors.border.medium,
+    ...shadows.sm,
   },
   googleButtonDisabled: {
     opacity: 0.6,
@@ -348,11 +348,24 @@ const styles = StyleSheet.create({
   googleIcon: {
     width: 20,
     height: 20,
-    marginRight: 12,
+    marginRight: spacing.md,
   },
   googleButtonText: {
-    color: '#374151',
-    fontSize: 16,
-    fontWeight: '600',
+    ...typography.bodySemibold,
+    color: colors.text.primary,
+  },
+  signupPrompt: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: spacing.xxl,
+  },
+  signupPromptText: {
+    ...typography.body,
+    color: colors.text.secondary,
+  },
+  signupLink: {
+    ...typography.bodySemibold,
+    color: colors.primary.main,
   },
 });

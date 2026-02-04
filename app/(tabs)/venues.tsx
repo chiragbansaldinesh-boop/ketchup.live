@@ -6,16 +6,16 @@ import {
   FlatList,
   TouchableOpacity,
   RefreshControl,
-  Dimensions,
   ActivityIndicator,
-  Alert,
+  Image,
 } from 'react-native';
-import { MapPin, Users, Clock, Star, Navigation, CircleCheck as CheckCircle, CircleAlert as AlertCircle } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MapPin, Users, Clock, Navigation, CircleCheck as CheckCircle, CircleAlert as AlertCircle, Flame, QrCode } from 'lucide-react-native';
 import SafetyBanner from '@/components/SafetyBanner';
 import { useLocationTracking } from '@/hooks/useLocationTracking';
 import { checkProximityToMultipleLocations, VenueProximity, DEFAULT_CAFE } from '@/utils/locationUtils';
-
-const { width } = Dimensions.get('window');
+import { colors, spacing, borderRadius, typography, shadows } from '@/constants/theme';
+import EmptyState from '@/components/ui/EmptyState';
 
 interface Venue {
   id: string;
@@ -28,6 +28,8 @@ interface Venue {
   isCheckedIn: boolean;
   checkInExpiry?: string;
   lastVisited?: string;
+  image?: string;
+  isHot?: boolean;
 }
 
 const mockVenues: Venue[] = [
@@ -41,6 +43,8 @@ const mockVenues: Venue[] = [
     rating: 4.8,
     isCheckedIn: true,
     checkInExpiry: '2:30 PM',
+    image: 'https://images.pexels.com/photos/1855214/pexels-photo-1855214.jpeg?auto=compress&cs=tinysrgb&w=600',
+    isHot: true,
   },
   {
     id: '2',
@@ -52,6 +56,7 @@ const mockVenues: Venue[] = [
     rating: 4.6,
     isCheckedIn: false,
     lastVisited: '2 days ago',
+    image: 'https://images.pexels.com/photos/1267696/pexels-photo-1267696.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     id: '3',
@@ -62,10 +67,11 @@ const mockVenues: Venue[] = [
     activeUsers: 5,
     rating: 4.7,
     isCheckedIn: false,
+    image: 'https://images.pexels.com/photos/67468/pexels-photo-67468.jpeg?auto=compress&cs=tinysrgb&w=600',
   },
   {
     id: '4',
-    name: 'Central Park Café',
+    name: 'Central Park Cafe',
     type: 'Coffee Shop',
     address: '321 Park St, San Francisco',
     distance: 1.2,
@@ -73,6 +79,8 @@ const mockVenues: Venue[] = [
     rating: 4.9,
     isCheckedIn: false,
     lastVisited: '1 week ago',
+    image: 'https://images.pexels.com/photos/1002740/pexels-photo-1002740.jpeg?auto=compress&cs=tinysrgb&w=600',
+    isHot: true,
   },
   {
     id: '5',
@@ -83,13 +91,12 @@ const mockVenues: Venue[] = [
     activeUsers: 20,
     rating: 4.5,
     isCheckedIn: false,
+    image: 'https://images.pexels.com/photos/260922/pexels-photo-260922.jpeg?auto=compress&cs=tinysrgb&w=600',
+    isHot: true,
   },
 ];
 
 export default function VenuesScreen() {
-  const currentUserId = 'current-user-id';
-  
-  // Location tracking for proximity detection
   const {
     userLocation,
     isLoading: locationLoading,
@@ -100,7 +107,7 @@ export default function VenuesScreen() {
     cafeLocation: DEFAULT_CAFE,
     radiusMeters: 60,
   });
-  
+
   const [venuesWithProximity, setVenuesWithProximity] = useState<VenueProximity[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<'all' | 'coffee' | 'bar' | 'restaurant'>('all');
@@ -140,7 +147,6 @@ export default function VenuesScreen() {
 
   const onRefresh = () => {
     setRefreshing(true);
-    // Simulate API call
     setTimeout(() => {
       setRefreshing(false);
     }, 1000);
@@ -154,98 +160,111 @@ export default function VenuesScreen() {
     return true;
   });
 
+  const getVenueData = (id: string) => mockVenues.find(v => v.id === id);
+
   const extendCheckIn = (venueId: string) => {
-    // TODO: Extend check-in via Supabase
-    if (currentUserId) {
-      console.log('Extending check-in for venue:', venueId);
-    }
-    
-    setVenues(prev => prev.map(venue => 
-      venue.id === venueId 
+    setVenues(prev => prev.map(venue =>
+      venue.id === venueId
         ? { ...venue, checkInExpiry: '4:30 PM' }
         : venue
     ));
   };
 
-  const VenueCard = ({ item }: { item: VenueProximity }) => (
-    <TouchableOpacity style={styles.venueCard}>
-      <View style={styles.venueHeader}>
-        <View style={styles.venueInfo}>
-          <Text style={styles.venueName}>{item.name}</Text>
-          <Text style={styles.venueType}>{item.type}</Text>
-          <View style={styles.venueLocation}>
-            <Navigation size={12} color="#6B7280" />
-            <Text style={[
-              styles.venueDistance,
-              item.isWithinRadius && styles.venueDistanceNear
-            ]}>
-              {item.formattedDistance} away
-            </Text>
+  const VenueCard = ({ item }: { item: VenueProximity }) => {
+    const venueData = getVenueData(item.id);
+
+    return (
+      <TouchableOpacity style={styles.venueCard} activeOpacity={0.9}>
+        <View style={styles.cardImageContainer}>
+          <Image
+            source={{ uri: venueData?.image || 'https://images.pexels.com/photos/1855214/pexels-photo-1855214.jpeg?auto=compress&cs=tinysrgb&w=600' }}
+            style={styles.cardImage}
+          />
+          <View style={styles.cardOverlay}>
+            {venueData?.isHot && (
+              <View style={styles.hotBadge}>
+                <Flame size={12} color={colors.text.inverse} />
+                <Text style={styles.hotText}>Hot</Text>
+              </View>
+            )}
+            <View style={styles.activeUsersBadge}>
+              <Users size={12} color={colors.text.inverse} />
+              <Text style={styles.activeUsersText}>{venueData?.activeUsers} active</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.cardContent}>
+          <View style={styles.cardHeader}>
+            <View style={styles.venueInfo}>
+              <Text style={styles.venueName}>{item.name}</Text>
+              <View style={styles.typeDistanceRow}>
+                <Text style={styles.venueType}>{item.type}</Text>
+                <View style={styles.dot} />
+                <View style={styles.distanceRow}>
+                  <Navigation size={12} color={colors.text.tertiary} />
+                  <Text style={[
+                    styles.venueDistance,
+                    item.isWithinRadius && styles.venueDistanceNear
+                  ]}>
+                    {item.formattedDistance}
+                  </Text>
+                </View>
+              </View>
+            </View>
             {item.isWithinRadius && (
-              <CheckCircle size={12} color="#10B981" style={styles.nearbyIcon} />
+              <View style={styles.hereIndicator}>
+                <CheckCircle size={16} color={colors.success.main} />
+              </View>
             )}
           </View>
-        </View>
-        <View style={styles.venueStats}>
+
+          <Text style={styles.venueAddress} numberOfLines={1}>{item.address}</Text>
+
           {item.isWithinRadius ? (
-            <View style={styles.atVenueContainer}>
-              <CheckCircle size={20} color="#10B981" />
-              <Text style={styles.atVenueText}>You're here!</Text>
+            <View style={styles.checkedInContainer}>
+              <View style={styles.checkedInStatus}>
+                <View style={styles.checkedInDot} />
+                <Text style={styles.checkedInText}>You're here</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.extendButton}
+                onPress={() => extendCheckIn(item.id)}
+              >
+                <Clock size={14} color={colors.primary.main} />
+                <Text style={styles.extendText}>Extend</Text>
+              </TouchableOpacity>
             </View>
           ) : (
-            <View style={styles.distanceContainer}>
-              <Text style={styles.distanceText}>{item.formattedDistance}</Text>
-            </View>
+            <TouchableOpacity style={styles.checkInButton}>
+              <QrCode size={16} color={colors.text.inverse} />
+              <Text style={styles.checkInButtonText}>Check In</Text>
+            </TouchableOpacity>
           )}
         </View>
-      </View>
-
-      <Text style={styles.venueAddress}>{item.address}</Text>
-
-      {item.isWithinRadius ? (
-        <View style={styles.checkedInContainer}>
-          <View style={styles.checkedInStatus}>
-            <View style={styles.checkedInDot} />
-            <Text style={styles.checkedInText}>You're at this venue</Text>
-          </View>
-          <TouchableOpacity 
-            style={styles.extendButton}
-            onPress={() => extendCheckIn(item.id)}
-          >
-            <Clock size={16} color="#D50000" />
-            <Text style={styles.extendText}>Extend</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <View style={styles.venueActions}>
-          <TouchableOpacity style={styles.scanButton}>
-            <Text style={styles.scanButtonText}>Scan QR Code</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Nearby Venues</Text>
+        <Text style={styles.title}>Venues</Text>
         <Text style={styles.subtitle}>
-          {locationLoading ? 'Getting your location...' : 
-           locationError ? 'Location unavailable' :
-           'Discover people at local spots'}
+          {locationLoading ? 'Getting your location...' :
+            locationError ? 'Location unavailable' :
+              'Discover people at local spots'}
         </Text>
       </View>
 
-      {/* Location Permission Request */}
       {permissionStatus !== 'granted' && !locationLoading && (
         <View style={styles.permissionContainer}>
-          <AlertCircle size={20} color="#F59E0B" />
+          <AlertCircle size={20} color={colors.warning.dark} />
           <Text style={styles.permissionText}>
-            Enable location to see real-time distances to venues
+            Enable location to see real-time distances
           </Text>
           <TouchableOpacity style={styles.permissionButton} onPress={requestPermissions}>
-            <Text style={styles.permissionButtonText}>Enable Location</Text>
+            <Text style={styles.permissionButtonText}>Enable</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -263,7 +282,7 @@ export default function VenuesScreen() {
               styles.filterButton,
               filter === key && styles.activeFilter,
             ]}
-            onPress={() => setFilter(key as any)}
+            onPress={() => setFilter(key as typeof filter)}
           >
             <Text style={[
               styles.filterText,
@@ -281,276 +300,271 @@ export default function VenuesScreen() {
 
       {locationLoading && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#D50000" />
+          <ActivityIndicator size="large" color={colors.primary.main} />
           <Text style={styles.loadingText}>
             Getting your location...
           </Text>
         </View>
       )}
 
-      <FlatList
-        data={filteredVenues}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <VenueCard item={item} />}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        contentContainerStyle={styles.venuesList}
-      />
-    </View>
+      {filteredVenues.length === 0 && !locationLoading ? (
+        <EmptyState type="venues" />
+      ) : (
+        <FlatList
+          data={filteredVenues}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <VenueCard item={item} />}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.primary.main}
+            />
+          }
+          contentContainerStyle={styles.venuesList}
+        />
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.background.secondary,
   },
   header: {
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    backgroundColor: colors.background.primary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
   },
   title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#374151',
-    marginBottom: 4,
+    ...typography.h2,
+    color: colors.text.primary,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
+    ...typography.caption,
+    color: colors.text.tertiary,
+    marginTop: spacing.xs,
   },
   filterContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    gap: 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    gap: spacing.sm,
+    backgroundColor: colors.background.primary,
   },
   filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.background.tertiary,
   },
   activeFilter: {
-    backgroundColor: '#D50000',
-    borderColor: '#D50000',
+    backgroundColor: colors.primary.main,
   },
   filterText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6B7280',
+    ...typography.captionMedium,
+    color: colors.text.secondary,
   },
   activeFilterText: {
-    color: '#FFFFFF',
+    color: colors.text.inverse,
   },
   venuesList: {
-    paddingHorizontal: 20,
-    paddingBottom: 100,
+    padding: spacing.lg,
+    paddingBottom: 120,
   },
   venueCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    backgroundColor: colors.background.primary,
+    borderRadius: borderRadius.xl,
+    marginBottom: spacing.lg,
+    overflow: 'hidden',
+    ...shadows.md,
   },
-  venueHeader: {
+  cardImageContainer: {
+    height: 140,
+    position: 'relative',
+  },
+  cardImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  cardOverlay: {
+    position: 'absolute',
+    top: spacing.md,
+    left: spacing.md,
+    right: spacing.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+  },
+  hotBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary.main,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    gap: spacing.xs,
+  },
+  hotText: {
+    ...typography.smallMedium,
+    color: colors.text.inverse,
+  },
+  activeUsersBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: borderRadius.full,
+    gap: spacing.xs,
+  },
+  activeUsersText: {
+    ...typography.smallMedium,
+    color: colors.text.inverse,
+  },
+  cardContent: {
+    padding: spacing.lg,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: spacing.xs,
   },
   venueInfo: {
     flex: 1,
   },
   venueName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#374151',
-    marginBottom: 4,
+    ...typography.h4,
+    color: colors.text.primary,
+    marginBottom: spacing.xs,
+  },
+  typeDistanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   venueType: {
-    fontSize: 14,
-    color: '#D50000',
+    ...typography.caption,
+    color: colors.primary.main,
     fontWeight: '500',
-    marginBottom: 4,
   },
-  venueLocation: {
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.text.tertiary,
+    marginHorizontal: spacing.sm,
+  },
+  distanceRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: spacing.xs,
   },
   venueDistance: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginLeft: 4,
+    ...typography.caption,
+    color: colors.text.tertiary,
   },
   venueDistanceNear: {
-    color: '#10B981',
+    color: colors.success.main,
     fontWeight: '600',
   },
-  nearbyIcon: {
-    marginLeft: 4,
-  },
-  venueStats: {
-    alignItems: 'flex-end',
-  },
-  atVenueContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#D1FAE5',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  atVenueText: {
-    fontSize: 12,
-    color: '#10B981',
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  distanceContainer: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  distanceText: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '600',
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  rating: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginLeft: 4,
-  },
-  activeUsersContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  activeUsers: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#D50000',
-    marginLeft: 4,
+  hereIndicator: {
+    backgroundColor: colors.success.light,
+    padding: spacing.xs,
+    borderRadius: borderRadius.full,
   },
   venueAddress: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 16,
+    ...typography.caption,
+    color: colors.text.tertiary,
+    marginBottom: spacing.md,
   },
   checkedInContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#FFF5F5',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FED7D7',
+    backgroundColor: colors.success.light,
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
   },
   checkedInStatus: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
   checkedInDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#10B981',
-    marginRight: 8,
+    backgroundColor: colors.success.main,
+    marginRight: spacing.sm,
   },
   checkedInText: {
-    fontSize: 14,
-    color: '#D50000',
-    fontWeight: '500',
+    ...typography.captionMedium,
+    color: colors.success.dark,
   },
   extendButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#D50000',
+    backgroundColor: colors.background.primary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    gap: spacing.xs,
   },
   extendText: {
-    fontSize: 12,
-    color: '#D50000',
-    fontWeight: '600',
-    marginLeft: 4,
+    ...typography.captionMedium,
+    color: colors.primary.main,
   },
-  venueActions: {
+  checkInButton: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary.main,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    gap: spacing.sm,
   },
-  scanButton: {
-    backgroundColor: '#D50000',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 25,
-    marginBottom: 8,
-  },
-  scanButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  lastVisited: {
-    fontSize: 12,
-    color: '#9CA3AF',
+  checkInButtonText: {
+    ...typography.bodySemibold,
+    color: colors.text.inverse,
   },
   permissionContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFBEB',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
+    backgroundColor: colors.warning.light,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    borderRadius: borderRadius.lg,
+    gap: spacing.sm,
   },
   permissionText: {
     flex: 1,
-    fontSize: 14,
-    color: '#92400E',
-    marginLeft: 12,
+    ...typography.caption,
+    color: colors.warning.dark,
   },
   permissionButton: {
-    backgroundColor: '#F59E0B',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    backgroundColor: colors.warning.main,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
   },
   permissionButtonText: {
-    fontSize: 12,
-    color: '#FFFFFF',
-    fontWeight: '600',
+    ...typography.smallMedium,
+    color: colors.text.inverse,
   },
   loadingContainer: {
     alignItems: 'center',
-    paddingVertical: 32,
+    paddingVertical: spacing.xxxl,
   },
   loadingText: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 12,
+    ...typography.caption,
+    color: colors.text.tertiary,
+    marginTop: spacing.md,
   },
 });

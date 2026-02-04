@@ -1,33 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Switch, Alert, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { User, Settings, Heart, MapPin, Camera, CreditCard as Edit3, LogOut, Film, Trophy, Crown, ChevronRight, ArrowLeft } from 'lucide-react-native';
+import { Settings, Heart, MapPin, Camera, CreditCard as Edit3, LogOut, Trophy, Crown, ChevronRight, BadgeCheck, Plus, Briefcase, GraduationCap, Ruler } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { supabaseAuthService } from '@/services/supabaseAuthService';
 import { supabaseDatabaseService } from '@/services/supabaseDatabaseService';
+import { colors, spacing, borderRadius, typography, shadows } from '@/constants/theme';
 
 export default function Profile() {
   const [isOnline, setIsOnline] = useState(true);
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
-
-  React.useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, []);
 
   const handleLogout = async () => {
     Alert.alert(
       'Logout',
       'Are you sure you want to logout?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Logout',
           style: 'destructive',
@@ -40,7 +29,6 @@ export default function Profile() {
             } catch (error) {
               console.error('Error during logout:', error);
             }
-            // For demo purposes, just navigate to login
             router.replace('/auth/login');
           },
         },
@@ -48,21 +36,34 @@ export default function Profile() {
       { cancelable: true }
     );
   };
-  
+
   const userProfile = {
-    name: "Alex Johnson",
+    name: "Alex",
     age: 28,
     bio: "Coffee enthusiast, dog lover, and weekend adventurer. Always up for trying new places!",
-    interests: ["Coffee", "Travel", "Photography", "Dogs", "Music"],
+    occupation: "Product Designer",
+    education: "Stanford University",
+    height: "5'10\"",
+    interests: ["Coffee", "Travel", "Photography", "Dogs", "Music", "Hiking"],
     photos: [
-      "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400",
-      "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400",
-      "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=400"
+      "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=600",
+      "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=600",
+      "https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=600",
+      null,
+      null,
+      null,
     ],
-    currentVenue: "Brew & Beans Café",
+    prompts: [
+      { question: "My simple pleasures", answer: "Sunday brunch with friends" },
+      { question: "I geek out on", answer: "Photography and vintage cameras" },
+    ],
+    currentVenue: "Brew & Beans Cafe",
     totalMatches: 47,
-    venuesVisited: 23
+    venuesVisited: 23,
+    isVerified: true,
   };
+
+  const profileCompletion = 75;
 
   const stats = [
     { label: "Matches", value: userProfile.totalMatches, icon: Heart },
@@ -70,263 +71,362 @@ export default function Profile() {
   ];
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <SafeAreaView style={styles.safeArea}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity 
-              style={styles.backButton} 
-              onPress={() => router.back()}
-            >
-              <ArrowLeft size={24} color="#1A1A1A" />
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Profile</Text>
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => router.push('/settings')}
+          >
+            <Settings size={22} color={colors.text.primary} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.completionCard}>
+          <View style={styles.completionHeader}>
+            <Text style={styles.completionTitle}>Profile Completion</Text>
+            <Text style={styles.completionPercent}>{profileCompletion}%</Text>
+          </View>
+          <View style={styles.progressBarBg}>
+            <LinearGradient
+              colors={colors.gradients.primary as [string, string]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.progressBarFill, { width: `${profileCompletion}%` }]}
+            />
+          </View>
+          <Text style={styles.completionHint}>Add more photos to increase visibility</Text>
+        </View>
+
+        <View style={styles.mainProfileSection}>
+          <View style={styles.profileImageContainer}>
+            <Image source={{ uri: userProfile.photos[0] || '' }} style={styles.profileImage} />
+            <TouchableOpacity style={styles.editPhotoButton}>
+              <Camera size={16} color={colors.text.inverse} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Profile</Text>
-            <TouchableOpacity 
-              style={styles.settingsButton}
-              onPress={() => router.push('/settings')}
-            >
-              <Settings size={24} color="#1A1A1A" />
-            </TouchableOpacity>
+            {userProfile.isVerified && (
+              <View style={styles.verifiedBadge}>
+                <BadgeCheck size={20} color={colors.accent.mint} fill={colors.accent.mint} />
+              </View>
+            )}
           </View>
 
-          {/* Profile Card */}
-          <View style={styles.profileCard}>
-            <View style={styles.profileHeader}>
-              <Image source={{ uri: userProfile.photos[0] }} style={styles.profileImage} />
-              <TouchableOpacity style={styles.editPhotoButton}>
-                <Camera size={16} color="#FFFDF9" />
+          <View style={styles.profileInfo}>
+            <View style={styles.nameRow}>
+              <Text style={styles.name}>{userProfile.name}, {userProfile.age}</Text>
+              <TouchableOpacity style={styles.editButton}>
+                <Edit3 size={18} color={colors.primary.main} />
               </TouchableOpacity>
             </View>
-            
-            <View style={styles.profileInfo}>
-              <View style={styles.nameRow}>
-                <Text style={styles.name}>{userProfile.name}, {userProfile.age}</Text>
-                <TouchableOpacity style={styles.editButton}>
-                  <Edit3 size={18} color="#E10600" />
-                </TouchableOpacity>
-              </View>
-              
-              <Text style={styles.bio}>{userProfile.bio}</Text>
-              
-              {/* Online Status */}
-              <View style={styles.statusRow}>
-                <View style={styles.statusIndicator}>
-                  <View style={[styles.statusDot, { backgroundColor: isOnline ? '#4CAF50' : '#999' }]} />
-                  <Text style={styles.statusText}>
-                    {isOnline ? 'Online' : 'Offline'}
-                  </Text>
-                </View>
-                <Switch
-                  value={isOnline}
-                  onValueChange={setIsOnline}
-                  trackColor={{ false: '#ddd', true: '#E10600' }}
-                  thumbColor="#FFFDF9"
-                />
-              </View>
 
-              {/* Current Venue */}
-              {isOnline && userProfile.currentVenue && (
-                <View style={styles.currentVenue}>
-                  <MapPin size={16} color="#E10600" />
-                  <Text style={styles.venueText}>Currently at {userProfile.currentVenue}</Text>
+            <View style={styles.detailsRow}>
+              {userProfile.occupation && (
+                <View style={styles.detailItem}>
+                  <Briefcase size={14} color={colors.text.tertiary} />
+                  <Text style={styles.detailText}>{userProfile.occupation}</Text>
+                </View>
+              )}
+              {userProfile.education && (
+                <View style={styles.detailItem}>
+                  <GraduationCap size={14} color={colors.text.tertiary} />
+                  <Text style={styles.detailText}>{userProfile.education}</Text>
+                </View>
+              )}
+              {userProfile.height && (
+                <View style={styles.detailItem}>
+                  <Ruler size={14} color={colors.text.tertiary} />
+                  <Text style={styles.detailText}>{userProfile.height}</Text>
                 </View>
               )}
             </View>
-          </View>
 
-          {/* Stats */}
-          <View style={styles.statsContainer}>
-            {stats.map((stat, index) => (
-              <View key={index} style={styles.statCard}>
-                <stat.icon size={24} color="#E10600" />
-                <Text style={styles.statValue}>{stat.value}</Text>
-                <Text style={styles.statLabel}>{stat.label}</Text>
+            <View style={styles.statusRow}>
+              <View style={styles.statusIndicator}>
+                <View style={[styles.statusDot, { backgroundColor: isOnline ? colors.success.main : colors.text.tertiary }]} />
+                <Text style={styles.statusText}>
+                  {isOnline ? 'Visible to others' : 'Hidden'}
+                </Text>
+              </View>
+              <Switch
+                value={isOnline}
+                onValueChange={setIsOnline}
+                trackColor={{ false: colors.border.medium, true: colors.primary.light }}
+                thumbColor={colors.background.primary}
+              />
+            </View>
+
+            {isOnline && userProfile.currentVenue && (
+              <View style={styles.currentVenue}>
+                <MapPin size={14} color={colors.primary.main} />
+                <Text style={styles.venueText}>At {userProfile.currentVenue}</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        <View style={styles.statsContainer}>
+          {stats.map((stat, index) => (
+            <View key={index} style={styles.statCard}>
+              <stat.icon size={22} color={colors.primary.main} />
+              <Text style={styles.statValue}>{stat.value}</Text>
+              <Text style={styles.statLabel}>{stat.label}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Photos</Text>
+            <Text style={styles.sectionSubtitle}>{userProfile.photos.filter(p => p).length}/6</Text>
+          </View>
+          <View style={styles.photoGrid}>
+            {userProfile.photos.map((photo, index) => (
+              <TouchableOpacity key={index} style={styles.photoSlot}>
+                {photo ? (
+                  <Image source={{ uri: photo }} style={styles.gridPhoto} />
+                ) : (
+                  <View style={styles.emptyPhotoSlot}>
+                    <Plus size={24} color={colors.text.tertiary} />
+                  </View>
+                )}
+                {index === 0 && photo && (
+                  <View style={styles.mainPhotoBadge}>
+                    <Text style={styles.mainPhotoText}>Main</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Prompts</Text>
+            <TouchableOpacity>
+              <Text style={styles.editLink}>Edit</Text>
+            </TouchableOpacity>
+          </View>
+          {userProfile.prompts.map((prompt, index) => (
+            <View key={index} style={styles.promptCard}>
+              <Text style={styles.promptQuestion}>{prompt.question}</Text>
+              <Text style={styles.promptAnswer}>{prompt.answer}</Text>
+            </View>
+          ))}
+          <TouchableOpacity style={styles.addPromptButton}>
+            <Plus size={18} color={colors.primary.main} />
+            <Text style={styles.addPromptText}>Add a prompt</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Interests</Text>
+            <TouchableOpacity>
+              <Text style={styles.editLink}>Edit</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.interestsContainer}>
+            {userProfile.interests.map((interest, index) => (
+              <View key={index} style={styles.interestTag}>
+                <Text style={styles.interestText}>{interest}</Text>
               </View>
             ))}
           </View>
+        </View>
 
-          {/* Interests */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Interests</Text>
-            <View style={styles.interestsContainer}>
-              {userProfile.interests.map((interest, index) => (
-                <View key={index} style={styles.interestTag}>
-                  <Text style={styles.interestText}>{interest}</Text>
-                </View>
-              ))}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/(tabs)/rewards')}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.warning.light }]}>
+              <Trophy size={20} color={colors.warning.dark} />
             </View>
-          </View>
+            <Text style={styles.menuText}>Rewards & Points</Text>
+            <ChevronRight size={20} color={colors.text.tertiary} />
+          </TouchableOpacity>
 
-          {/* Photo Gallery */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Photos</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoGallery}>
-              {userProfile.photos.map((photo, index) => (
-                <Image key={index} source={{ uri: photo }} style={styles.galleryPhoto} />
-              ))}
-              <TouchableOpacity style={styles.addPhotoButton}>
-                <Camera size={24} color="#999" />
-                <Text style={styles.addPhotoText}>Add Photo</Text>
-              </TouchableOpacity>
-            </ScrollView>
-          </View>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/settings/subscription')}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.secondary.light }]}>
+              <Crown size={20} color={colors.primary.main} />
+            </View>
+            <Text style={styles.menuText}>Premium Subscription</Text>
+            <ChevronRight size={20} color={colors.text.tertiary} />
+          </TouchableOpacity>
 
-          {/* Quick Actions */}
-          <View style={styles.section}>
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/stories')}
-            >
-              <Film size={20} color="#E10600" />
-              <Text style={styles.actionText}>My Stories</Text>
-              <ChevronRight size={20} color="#9CA3AF" style={styles.chevron} />
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/settings')}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.background.tertiary }]}>
+              <Settings size={20} color={colors.text.secondary} />
+            </View>
+            <Text style={styles.menuText}>Settings & Privacy</Text>
+            <ChevronRight size={20} color={colors.text.tertiary} />
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/rewards')}
-            >
-              <Trophy size={20} color="#E10600" />
-              <Text style={styles.actionText}>Rewards</Text>
-              <ChevronRight size={20} color="#9CA3AF" style={styles.chevron} />
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.menuItem, styles.logoutItem]}
+            onPress={handleLogout}
+          >
+            <View style={[styles.menuIconContainer, { backgroundColor: colors.secondary.light }]}>
+              <LogOut size={20} color={colors.error.main} />
+            </View>
+            <Text style={[styles.menuText, { color: colors.error.main }]}>Logout</Text>
+          </TouchableOpacity>
+        </View>
 
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/settings/subscription')}
-            >
-              <Crown size={20} color="#E10600" />
-              <Text style={styles.actionText}>Subscription</Text>
-              <ChevronRight size={20} color="#9CA3AF" style={styles.chevron} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.actionButton}
-              onPress={() => router.push('/settings')}
-            >
-              <Settings size={20} color="#E10600" />
-              <Text style={styles.actionText}>Settings & Privacy</Text>
-              <ChevronRight size={20} color="#9CA3AF" style={styles.chevron} />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.actionButton, styles.logoutButton]}
-              onPress={handleLogout}
-            >
-              <LogOut size={20} color="#ff4444" />
-              <Text style={[styles.actionText, { color: '#ff4444' }]}>Logout</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </Animated.View>
+        <View style={styles.bottomPadding} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFDF9',
-  },
-  safeArea: {
-    flex: 1,
+    backgroundColor: colors.background.secondary,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(225,6,0,0.08)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.background.primary,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1A1A1A',
+    ...typography.h3,
+    color: colors.text.primary,
   },
   settingsButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(225,6,0,0.08)',
+    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  profileCard: {
-    backgroundColor: '#FFFDF9',
-    margin: 20,
-    borderRadius: 24,
-    padding: 20,
-    shadowColor: 'rgba(0,0,0,0.05)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 12,
-    elevation: 4,
-    borderWidth: 1,
-    borderColor: 'rgba(26,26,26,0.05)',
+  completionCard: {
+    margin: spacing.lg,
+    padding: spacing.lg,
+    backgroundColor: colors.background.primary,
+    borderRadius: borderRadius.lg,
+    ...shadows.sm,
   },
-  profileHeader: {
+  completionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: spacing.md,
+  },
+  completionTitle: {
+    ...typography.bodySemibold,
+    color: colors.text.primary,
+  },
+  completionPercent: {
+    ...typography.bodySemibold,
+    color: colors.primary.main,
+  },
+  progressBarBg: {
+    height: 8,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  completionHint: {
+    ...typography.small,
+    color: colors.text.tertiary,
+    marginTop: spacing.sm,
+  },
+  mainProfileSection: {
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
+    backgroundColor: colors.background.primary,
+  },
+  profileImageContainer: {
+    position: 'relative',
+    marginBottom: spacing.lg,
   },
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.background.tertiary,
   },
   editPhotoButton: {
     position: 'absolute',
-    bottom: 0,
-    right: '35%',
-    backgroundColor: '#E10600',
+    bottom: 4,
+    right: 4,
+    backgroundColor: colors.primary.main,
     width: 32,
     height: 32,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 3,
-    borderColor: '#FFFDF9',
+    borderColor: colors.background.primary,
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: colors.background.primary,
+    borderRadius: 12,
+    padding: 2,
   },
   profileInfo: {
     alignItems: 'center',
+    width: '100%',
   },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   name: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginRight: 8,
+    ...typography.h2,
+    color: colors.text.primary,
+    marginRight: spacing.sm,
   },
   editButton: {
-    padding: 4,
+    padding: spacing.xs,
   },
-  bio: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 16,
+  detailsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  detailText: {
+    ...typography.caption,
+    color: colors.text.secondary,
   },
   statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
-    paddingHorizontal: 20,
-    marginBottom: 12,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.background.secondary,
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.md,
   },
   statusIndicator: {
     flexDirection: 'row',
@@ -336,136 +436,184 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    marginRight: 8,
+    marginRight: spacing.sm,
   },
   statusText: {
-    fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
+    ...typography.bodyMedium,
+    color: colors.text.secondary,
   },
   currentVenue: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(225,6,0,0.08)',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    backgroundColor: colors.secondary.light,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    gap: spacing.xs,
   },
   venueText: {
-    fontSize: 14,
-    color: '#E10600',
-    fontWeight: '500',
-    marginLeft: 6,
+    ...typography.captionMedium,
+    color: colors.primary.main,
   },
   statsContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
-    gap: 12,
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
+    marginBottom: spacing.lg,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#FFFDF9',
-    padding: 20,
-    borderRadius: 24,
+    backgroundColor: colors.background.primary,
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
     alignItems: 'center',
-    shadowColor: 'rgba(0,0,0,0.05)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(26,26,26,0.05)',
+    ...shadows.sm,
   },
   statValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginTop: 8,
+    ...typography.h3,
+    color: colors.text.primary,
+    marginTop: spacing.sm,
   },
   statLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
+    ...typography.caption,
+    color: colors.text.tertiary,
+    marginTop: spacing.xs,
   },
   section: {
-    margin: 20,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
   },
   sectionTitle: {
-    fontSize: 18,
+    ...typography.h4,
+    color: colors.text.primary,
+  },
+  sectionSubtitle: {
+    ...typography.caption,
+    color: colors.text.tertiary,
+  },
+  editLink: {
+    ...typography.captionMedium,
+    color: colors.primary.main,
+  },
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  photoSlot: {
+    width: '31%',
+    aspectRatio: 1,
+    borderRadius: borderRadius.md,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  gridPhoto: {
+    width: '100%',
+    height: '100%',
+  },
+  emptyPhotoSlot: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: colors.background.tertiary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: colors.border.light,
+    borderStyle: 'dashed',
+    borderRadius: borderRadius.md,
+  },
+  mainPhotoBadge: {
+    position: 'absolute',
+    bottom: spacing.xs,
+    left: spacing.xs,
+    backgroundColor: colors.text.primary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.sm,
+  },
+  mainPhotoText: {
+    ...typography.small,
+    color: colors.text.inverse,
     fontWeight: '600',
-    color: '#1A1A1A',
-    marginBottom: 12,
+  },
+  promptCard: {
+    backgroundColor: colors.background.primary,
+    padding: spacing.lg,
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.sm,
+    ...shadows.sm,
+  },
+  promptQuestion: {
+    ...typography.captionMedium,
+    color: colors.text.tertiary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: spacing.xs,
+  },
+  promptAnswer: {
+    ...typography.bodyMedium,
+    color: colors.text.primary,
+  },
+  addPromptButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.md,
+    backgroundColor: colors.secondary.light,
+    borderRadius: borderRadius.lg,
+    gap: spacing.sm,
+  },
+  addPromptText: {
+    ...typography.bodyMedium,
+    color: colors.primary.main,
   },
   interestsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: spacing.sm,
   },
   interestTag: {
-    backgroundColor: 'rgba(225,6,0,0.08)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    backgroundColor: colors.secondary.light,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
   },
   interestText: {
-    fontSize: 14,
-    color: '#E10600',
-    fontWeight: '500',
+    ...typography.captionMedium,
+    color: colors.primary.main,
   },
-  photoGallery: {
+  menuItem: {
     flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.primary,
+    padding: spacing.md,
+    borderRadius: borderRadius.lg,
+    marginBottom: spacing.sm,
+    ...shadows.sm,
   },
-  galleryPhoto: {
-    width: 100,
-    height: 100,
-    borderRadius: 24,
-    marginRight: 12,
-    backgroundColor: '#f0f0f0',
-  },
-  addPhotoButton: {
-    width: 100,
-    height: 100,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: 'rgba(26,26,26,0.1)',
-    borderStyle: 'dashed',
+  menuIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(225,6,0,0.05)',
+    marginRight: spacing.md,
   },
-  addPhotoText: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFDF9',
-    padding: 16,
-    borderRadius: 24,
-    marginBottom: 12,
-    shadowColor: 'rgba(0,0,0,0.05)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(26,26,26,0.05)',
-  },
-  actionText: {
-    fontSize: 16,
-    color: '#1A1A1A',
-    fontWeight: '500',
-    marginLeft: 12,
+  menuText: {
+    ...typography.bodyMedium,
+    color: colors.text.primary,
     flex: 1,
   },
-  chevron: {
-    marginLeft: 'auto',
+  logoutItem: {
+    backgroundColor: colors.background.primary,
   },
-  logoutButton: {
-    backgroundColor: 'rgba(255,68,68,0.05)',
-    borderColor: 'rgba(255,68,68,0.1)',
+  bottomPadding: {
+    height: spacing.huge,
   },
 });

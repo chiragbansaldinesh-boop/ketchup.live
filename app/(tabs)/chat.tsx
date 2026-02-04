@@ -8,14 +8,15 @@ import {
   TextInput,
   Image,
   Alert,
-  Animated,
 } from 'react-native';
-import { Send, MapPin, Gamepad as GamepadIcon, MoveVertical as MoreVertical, Shield, TriangleAlert as AlertTriangle, ArrowLeft } from 'lucide-react-native';
+import { Send, MapPin, MoreVertical, Shield, TriangleAlert as AlertTriangle, ArrowLeft, Check, CheckCheck } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
 import { BlurView } from 'expo-blur';
 import BlockUserModal from '@/components/BlockUserModal';
 import { privacyService } from '@/services/privacyService';
+import { colors, spacing, borderRadius, typography, shadows } from '@/constants/theme';
+import EmptyState from '@/components/ui/EmptyState';
+import { OnlineIndicator } from '@/components/ui/Badge';
 
 interface Chat {
   id: string;
@@ -26,6 +27,7 @@ interface Chat {
   timestamp: string;
   unread: boolean;
   matchedAt?: string;
+  isOnline?: boolean;
 }
 
 interface Message {
@@ -33,6 +35,7 @@ interface Message {
   text: string;
   sender: 'me' | 'other';
   timestamp: string;
+  read?: boolean;
 }
 
 const mockChats: Chat[] = [
@@ -41,54 +44,53 @@ const mockChats: Chat[] = [
     name: 'Emma',
     photo: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400',
     venue: 'Blue Bottle Coffee',
-    lastMessage: 'That sounds like a great idea! 😊',
-    timestamp: '2 min ago',
+    lastMessage: 'That sounds like a great idea!',
+    timestamp: '2 min',
     unread: true,
     matchedAt: 'Blue Bottle Coffee',
+    isOnline: true,
   },
   {
     id: '2',
     name: 'Alex',
     photo: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=400',
     venue: 'The Rusty Anchor',
-    lastMessage: 'Let\'s play a game! 🎮',
-    timestamp: '1 hour ago',
+    lastMessage: "Let's grab coffee sometime!",
+    timestamp: '1 hr',
     unread: false,
     matchedAt: 'The Rusty Anchor',
+    isOnline: false,
   },
   {
     id: '3',
     name: 'Sophie',
     photo: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400',
-    venue: 'Central Park Café',
+    venue: 'Central Park Cafe',
     lastMessage: 'Thanks for the coffee recommendation!',
     timestamp: 'Yesterday',
     unread: false,
-    matchedAt: 'Central Park Café',
+    matchedAt: 'Central Park Cafe',
+    isOnline: true,
   },
 ];
 
 const icebreakers = [
-  "What's your favorite thing about this place?",
-  "Any good menu recommendations?",
+  "What's your favorite spot here?",
+  "Any recommendations?",
   "Come here often?",
-  "What brings you here today?",
+  "Great vibe, right?",
 ];
 
 export default function ChatScreen() {
-  // TODO: Replace with actual user ID from authentication
-  const currentUserId = 'current-user-id';
-  
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
   const [message, setMessage] = useState('');
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [isUserBlocked, setIsUserBlocked] = useState(false);
-  const fadeAnim = React.useRef(new Animated.Value(0)).current;
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: 'Hey! Nice to meet you at the café',
+      text: 'Hey! Nice to meet you at the cafe',
       sender: 'other',
       timestamp: '2:30 PM',
     },
@@ -97,22 +99,15 @@ export default function ChatScreen() {
       text: 'Hi! Yeah, great place. Do you come here often?',
       sender: 'me',
       timestamp: '2:32 PM',
+      read: true,
     },
     {
       id: '3',
-      text: 'Pretty regularly! The coffee is amazing ☕',
+      text: 'Pretty regularly! The coffee is amazing',
       sender: 'other',
       timestamp: '2:33 PM',
     },
   ]);
-
-  React.useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, []);
 
   const sendMessage = () => {
     if (message.trim()) {
@@ -121,6 +116,7 @@ export default function ChatScreen() {
         text: message.trim(),
         sender: 'me',
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        read: false,
       };
       setMessages(prev => [...prev, newMessage]);
       setMessage('');
@@ -133,6 +129,7 @@ export default function ChatScreen() {
       text: text,
       sender: 'me',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      read: false,
     };
     setMessages(prev => [...prev, newMessage]);
   };
@@ -164,11 +161,10 @@ export default function ChatScreen() {
       'This will report the user to our safety team for review.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Report', 
+        {
+          text: 'Report',
           style: 'destructive',
           onPress: () => {
-            // Handle report submission
             Alert.alert('Report Submitted', 'Thank you for reporting. Our team will review this.');
           }
         },
@@ -178,27 +174,27 @@ export default function ChatScreen() {
 
   const ChatMenu = () => (
     <View style={styles.menuOverlay}>
-      <TouchableOpacity 
-        style={styles.menuBackdrop} 
+      <TouchableOpacity
+        style={styles.menuBackdrop}
         onPress={() => setShowChatMenu(false)}
       />
       <BlurView intensity={80} style={styles.menu}>
         <View style={styles.menuContent}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={() => {
               setShowChatMenu(false);
               setShowBlockModal(true);
             }}
           >
-            <Shield size={20} color="#DC2626" />
+            <Shield size={20} color={colors.error.main} />
             <Text style={styles.menuText}>Block User</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.menuItem}
             onPress={handleReportUser}
           >
-            <AlertTriangle size={20} color="#F59E0B" />
+            <AlertTriangle size={20} color={colors.warning.main} />
             <Text style={styles.menuText}>Report User</Text>
           </TouchableOpacity>
         </View>
@@ -208,35 +204,44 @@ export default function ChatScreen() {
 
   if (selectedChat) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity 
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.conversationHeader}>
+          <TouchableOpacity
             style={styles.backButton}
             onPress={() => setSelectedChat(null)}
           >
-            <ArrowLeft size={24} color="#1A1A1A" />
+            <ArrowLeft size={24} color={colors.text.primary} />
           </TouchableOpacity>
-          <View style={styles.headerInfo}>
-            <Image source={{ uri: selectedChat.photo }} style={styles.headerPhoto} />
-            <View>
+          <TouchableOpacity style={styles.headerProfile}>
+            <View style={styles.headerAvatarContainer}>
+              <Image source={{ uri: selectedChat.photo }} style={styles.headerPhoto} />
+              {selectedChat.isOnline && (
+                <View style={styles.headerOnlineIndicator}>
+                  <OnlineIndicator size={14} />
+                </View>
+              )}
+            </View>
+            <View style={styles.headerTextContainer}>
               <Text style={styles.headerName}>{selectedChat.name}</Text>
               <View style={styles.headerVenue}>
-                <MapPin size={12} color="#6B7280" />
-                <Text style={styles.headerVenueText}>Met at {selectedChat.matchedAt || selectedChat.venue}</Text>
+                <MapPin size={12} color={colors.text.tertiary} />
+                <Text style={styles.headerVenueText}>{selectedChat.matchedAt || selectedChat.venue}</Text>
               </View>
             </View>
-          </View>
-          <TouchableOpacity 
+          </TouchableOpacity>
+          <TouchableOpacity
             style={styles.menuButton}
             onPress={() => setShowChatMenu(true)}
           >
-            <MoreVertical size={20} color="#374151" />
+            <MoreVertical size={20} color={colors.text.secondary} />
           </TouchableOpacity>
         </View>
 
         {isUserBlocked ? (
           <View style={styles.blockedContainer}>
-            <Shield size={32} color="#DC2626" />
+            <View style={styles.blockedIconContainer}>
+              <Shield size={32} color={colors.error.main} />
+            </View>
             <Text style={styles.blockedTitle}>User Blocked</Text>
             <Text style={styles.blockedText}>
               You have blocked this user. They cannot see your profile or send you messages.
@@ -244,72 +249,91 @@ export default function ChatScreen() {
           </View>
         ) : (
           <>
-        <FlatList
-          data={messages}
-          keyExtractor={(item) => item.id}
-          style={styles.messagesList}
-          renderItem={({ item }) => (
-            <View
-              style={[
-                styles.messageContainer,
-                item.sender === 'me' ? styles.myMessage : styles.otherMessage,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.messageText,
-                  item.sender === 'me' ? styles.myMessageText : styles.otherMessageText,
-                ]}
-              >
-                {item.text}
-              </Text>
-              <Text
-                style={[
-                  styles.messageTime,
-                  item.sender === 'me' ? styles.myMessageTime : styles.otherMessageTime,
-                ]}
-              >
-                {item.timestamp}
-              </Text>
+            <FlatList
+              data={messages}
+              keyExtractor={(item) => item.id}
+              style={styles.messagesList}
+              contentContainerStyle={styles.messagesContent}
+              renderItem={({ item }) => (
+                <View
+                  style={[
+                    styles.messageContainer,
+                    item.sender === 'me' ? styles.myMessage : styles.otherMessage,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.messageBubble,
+                      item.sender === 'me' ? styles.myBubble : styles.otherBubble,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.messageText,
+                        item.sender === 'me' ? styles.myMessageText : styles.otherMessageText,
+                      ]}
+                    >
+                      {item.text}
+                    </Text>
+                  </View>
+                  <View style={[
+                    styles.messageFooter,
+                    item.sender === 'me' ? styles.myFooter : styles.otherFooter,
+                  ]}>
+                    <Text style={styles.messageTime}>{item.timestamp}</Text>
+                    {item.sender === 'me' && (
+                      item.read ? (
+                        <CheckCheck size={14} color={colors.accent.mint} />
+                      ) : (
+                        <Check size={14} color={colors.text.tertiary} />
+                      )
+                    )}
+                  </View>
+                </View>
+              )}
+            />
+
+            <View style={styles.icebreakerSection}>
+              <Text style={styles.icebreakerLabel}>Quick replies</Text>
+              <FlatList
+                horizontal
+                data={icebreakers}
+                keyExtractor={(item, index) => index.toString()}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.icebreakerList}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={styles.icebreakerButton}
+                    onPress={() => sendIcebreaker(item)}
+                  >
+                    <Text style={styles.icebreakerText}>{item}</Text>
+                  </TouchableOpacity>
+                )}
+              />
             </View>
-          )}
-        />
 
-        <View style={styles.icebreakerContainer}>
-          <FlatList
-            horizontal
-            data={icebreakers}
-            keyExtractor={(item, index) => index.toString()}
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.textInput}
+                value={message}
+                onChangeText={setMessage}
+                placeholder="Type a message..."
+                placeholderTextColor={colors.text.tertiary}
+                multiline
+              />
               <TouchableOpacity
-                style={styles.icebreakerButton}
-                onPress={() => sendIcebreaker(item)}
+                style={[styles.sendButton, !message.trim() && styles.sendButtonDisabled]}
+                onPress={sendMessage}
+                disabled={!message.trim()}
               >
-                <Text style={styles.icebreakerText}>{item}</Text>
+                <Send size={20} color={colors.text.inverse} />
               </TouchableOpacity>
-            )}
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            value={message}
-            onChangeText={setMessage}
-            placeholder="Type a message..."
-            placeholderTextColor="#9CA3AF"
-            multiline
-          />
-          <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
-            <Send size={20} color="#FFFFFF" />
-          </TouchableOpacity>
-        </View>
+            </View>
           </>
         )}
 
         {showChatMenu && <ChatMenu />}
-        
+
         <BlockUserModal
           visible={showBlockModal}
           onClose={() => setShowBlockModal(false)}
@@ -323,24 +347,17 @@ export default function ChatScreen() {
   }
 
   return (
-    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.mainHeader}>
-          <TouchableOpacity 
-            style={styles.backButton} 
-            onPress={() => router.back()}
-          >
-            <ArrowLeft size={24} color="#1A1A1A" />
-          </TouchableOpacity>
-          <View style={styles.headerContent}>
-            <Text style={styles.title}>Messages</Text>
-            <Text style={styles.subtitle}>
-              {mockChats.filter(c => c.unread).length} new conversations
-            </Text>
-          </View>
-          <View style={styles.placeholder} />
-        </View>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Messages</Text>
+        <Text style={styles.subtitle}>
+          {mockChats.filter(c => c.unread).length} unread
+        </Text>
+      </View>
 
+      {mockChats.length === 0 ? (
+        <EmptyState type="chat" />
+      ) : (
         <FlatList
           data={mockChats}
           keyExtractor={(item) => item.id}
@@ -350,18 +367,31 @@ export default function ChatScreen() {
             <TouchableOpacity
               style={styles.chatItem}
               onPress={() => handleChatSelect(item)}
+              activeOpacity={0.7}
             >
-              <Image source={{ uri: item.photo }} style={styles.avatar} />
+              <View style={styles.avatarContainer}>
+                <Image source={{ uri: item.photo }} style={styles.avatar} />
+                {item.isOnline && (
+                  <View style={styles.onlineIndicatorWrapper}>
+                    <OnlineIndicator size={14} />
+                  </View>
+                )}
+              </View>
               <View style={styles.chatContent}>
-                <View style={styles.chatMeta}>
+                <View style={styles.chatTopRow}>
                   <Text style={styles.chatName}>{item.name}</Text>
-                  <Text style={styles.chatTime}>{item.timestamp}</Text>
+                  <Text style={[styles.chatTime, item.unread && styles.chatTimeUnread]}>
+                    {item.timestamp}
+                  </Text>
                 </View>
                 <View style={styles.venueContainer}>
-                  <MapPin size={12} color="#6B7280" />
-                  <Text style={styles.venueText}>Met at {item.matchedAt || item.venue}</Text>
+                  <MapPin size={12} color={colors.text.tertiary} />
+                  <Text style={styles.venueText}>{item.matchedAt || item.venue}</Text>
                 </View>
-                <Text style={[styles.lastMessage, item.unread && styles.unreadMessage]}>
+                <Text
+                  style={[styles.lastMessage, item.unread && styles.lastMessageUnread]}
+                  numberOfLines={1}
+                >
                   {item.lastMessage}
                 </Text>
               </View>
@@ -369,137 +399,143 @@ export default function ChatScreen() {
             </TouchableOpacity>
           )}
         />
-      </SafeAreaView>
-    </Animated.View>
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFDF9',
+    backgroundColor: colors.background.primary,
   },
-  safeArea: {
-    flex: 1,
+  header: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
   },
-  mainHeader: {
+  title: {
+    ...typography.h2,
+    color: colors.text.primary,
+  },
+  subtitle: {
+    ...typography.caption,
+    color: colors.text.tertiary,
+    marginTop: spacing.xs,
+  },
+  chatsList: {
+    paddingVertical: spacing.sm,
+  },
+  chatItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    backgroundColor: colors.background.primary,
+  },
+  avatarContainer: {
+    position: 'relative',
+    marginRight: spacing.md,
+  },
+  avatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  onlineIndicatorWrapper: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+  },
+  chatContent: {
+    flex: 1,
+  },
+  chatTopRow: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  chatName: {
+    ...typography.bodySemibold,
+    color: colors.text.primary,
+  },
+  chatTime: {
+    ...typography.small,
+    color: colors.text.tertiary,
+  },
+  chatTimeUnread: {
+    color: colors.primary.main,
+    fontWeight: '600',
+  },
+  venueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.xs,
+  },
+  venueText: {
+    ...typography.small,
+    color: colors.text.tertiary,
+    marginLeft: spacing.xs,
+  },
+  lastMessage: {
+    ...typography.caption,
+    color: colors.text.secondary,
+  },
+  lastMessageUnread: {
+    color: colors.text.primary,
+    fontWeight: '500',
+  },
+  unreadDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.primary.main,
+    marginLeft: spacing.sm,
+  },
+  conversationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.light,
+    backgroundColor: colors.background.primary,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(225,6,0,0.08)',
+    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  placeholder: {
-    width: 40,
-  },
-  headerContent: {
-    alignItems: 'center',
-  },
-  chatsList: {
-    paddingHorizontal: 20,
-    paddingBottom: 100,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  chatItem: {
-    flexDirection: 'row',
-    padding: 20,
-    backgroundColor: '#FFFDF9',
-    marginBottom: 12,
-    borderRadius: 24,
-    shadowColor: 'rgba(0,0,0,0.05)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 1,
-    shadowRadius: 8,
-    elevation: 2,
-    borderWidth: 1,
-    borderColor: 'rgba(26,26,26,0.05)',
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    marginRight: 16,
-  },
-  chatContent: {
-    flex: 1,
-  },
-  chatMeta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  chatName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1A1A1A',
-  },
-  chatTime: {
-    fontSize: 12,
-    color: '#9CA3AF',
-  },
-  venueContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  venueText: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginLeft: 4,
-  },
-  lastMessage: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  unreadMessage: {
-    color: '#1A1A1A',
-    fontWeight: '500',
-  },
-  unreadDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#D50000',
-    alignSelf: 'center',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-  },
-  headerInfo: {
+  headerProfile: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: spacing.md,
+  },
+  headerAvatarContainer: {
+    position: 'relative',
   },
   headerPhoto: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  headerOnlineIndicator: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+  },
+  headerTextContainer: {
+    marginLeft: spacing.md,
   },
   headerName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#1A1A1A',
+    ...typography.bodySemibold,
+    color: colors.text.primary,
   },
   headerVenue: {
     flexDirection: 'row',
@@ -507,25 +543,29 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   headerVenueText: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginLeft: 4,
+    ...typography.small,
+    color: colors.text.tertiary,
+    marginLeft: spacing.xs,
   },
   menuButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(225,6,0,0.08)',
+    backgroundColor: colors.background.tertiary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   messagesList: {
     flex: 1,
-    padding: 20,
+    backgroundColor: colors.background.secondary,
+  },
+  messagesContent: {
+    padding: spacing.lg,
+    paddingBottom: spacing.xl,
   },
   messageContainer: {
-    marginBottom: 16,
-    maxWidth: '75%',
+    marginBottom: spacing.md,
+    maxWidth: '80%',
   },
   myMessage: {
     alignSelf: 'flex-end',
@@ -533,90 +573,127 @@ const styles = StyleSheet.create({
   otherMessage: {
     alignSelf: 'flex-start',
   },
+  messageBubble: {
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.xl,
+  },
+  myBubble: {
+    backgroundColor: colors.primary.main,
+    borderBottomRightRadius: spacing.xs,
+  },
+  otherBubble: {
+    backgroundColor: colors.background.primary,
+    borderBottomLeftRadius: spacing.xs,
+    ...shadows.sm,
+  },
   messageText: {
-    fontSize: 16,
-    lineHeight: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 20,
+    ...typography.body,
+    lineHeight: 22,
   },
   myMessageText: {
-    backgroundColor: '#E10600',
-    color: '#FFFDF9',
+    color: colors.text.inverse,
   },
   otherMessageText: {
-    backgroundColor: 'rgba(225,6,0,0.08)',
-    color: '#1A1A1A',
+    color: colors.text.primary,
+  },
+  messageFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.xs,
+    gap: spacing.xs,
+  },
+  myFooter: {
+    justifyContent: 'flex-end',
+  },
+  otherFooter: {
+    justifyContent: 'flex-start',
   },
   messageTime: {
-    fontSize: 11,
-    marginTop: 4,
-    paddingHorizontal: 4,
+    ...typography.small,
+    color: colors.text.tertiary,
   },
-  myMessageTime: {
-    color: '#9CA3AF',
-    textAlign: 'right',
+  icebreakerSection: {
+    paddingVertical: spacing.md,
+    backgroundColor: colors.background.primary,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
   },
-  otherMessageTime: {
-    color: '#9CA3AF',
-    textAlign: 'left',
+  icebreakerLabel: {
+    ...typography.small,
+    color: colors.text.tertiary,
+    marginLeft: spacing.lg,
+    marginBottom: spacing.sm,
   },
-  icebreakerContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+  icebreakerList: {
+    paddingHorizontal: spacing.lg,
   },
   icebreakerButton: {
-    backgroundColor: 'rgba(225,6,0,0.08)',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 24,
-    marginRight: 12,
+    backgroundColor: colors.secondary.light,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: borderRadius.full,
+    marginRight: spacing.sm,
   },
   icebreakerText: {
-    fontSize: 14,
-    color: '#E10600',
-    fontWeight: '500',
+    ...typography.captionMedium,
+    color: colors.primary.main,
   },
   inputContainer: {
     flexDirection: 'row',
-    padding: 20,
+    padding: spacing.lg,
     alignItems: 'flex-end',
+    backgroundColor: colors.background.primary,
+    borderTopWidth: 1,
+    borderTopColor: colors.border.light,
   },
   textInput: {
     flex: 1,
-    backgroundColor: 'rgba(225,6,0,0.05)',
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    fontSize: 16,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.xl,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    ...typography.body,
+    color: colors.text.primary,
     maxHeight: 100,
-    marginRight: 12,
+    marginRight: spacing.md,
   },
   sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#E10600',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary.main,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.md,
+  },
+  sendButtonDisabled: {
+    backgroundColor: colors.text.tertiary,
   },
   blockedContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: spacing.xxxl,
+  },
+  blockedIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.secondary.light,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.lg,
   },
   blockedTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#DC2626',
-    marginTop: 16,
-    marginBottom: 12,
+    ...typography.h3,
+    color: colors.error.main,
+    marginBottom: spacing.sm,
     textAlign: 'center',
   },
   blockedText: {
-    fontSize: 16,
-    color: '#6B7280',
+    ...typography.body,
+    color: colors.text.secondary,
     textAlign: 'center',
     lineHeight: 24,
   },
@@ -630,34 +707,30 @@ const styles = StyleSheet.create({
   },
   menuBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
   },
   menu: {
     position: 'absolute',
-    top: 120,
-    right: 20,
-    borderRadius: 24,
+    top: 100,
+    right: spacing.lg,
+    borderRadius: borderRadius.lg,
     overflow: 'hidden',
-    shadowColor: 'rgba(225,6,0,0.12)',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 24,
-    elevation: 8,
-    minWidth: 160,
+    ...shadows.lg,
+    minWidth: 180,
   },
   menuContent: {
-    paddingVertical: 12,
+    paddingVertical: spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.9)',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   menuText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#1A1A1A',
-    marginLeft: 12,
+    ...typography.bodyMedium,
+    color: colors.text.primary,
+    marginLeft: spacing.md,
   },
 });
