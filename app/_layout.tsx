@@ -1,26 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
-import { ActivityIndicator, View, StyleSheet } from 'react-native';
-import { router } from 'expo-router';
+import { View, StyleSheet } from 'react-native';
+import KetchupSplashScreen from '@/components/KetchupSplashScreen';
 
 export default function RootLayout() {
   useFrameworkReady();
-  
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // For now, skip authentication and go directly to the app
-    setIsLoading(false);
-    setUser({ id: 'demo-user' }); // Demo user for testing
-  }, []);
+  const [showSplash, setShowSplash] = useState(true);
 
-  if (isLoading) {
+  const handleSplashComplete = () => {
+    setShowSplash(false);
+  };
+
+  if (showSplash) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#E53935" />
+      <View style={styles.splashContainer}>
+        <KetchupSplashScreen onComplete={handleSplashComplete} />
+        <StatusBar style="light" />
       </View>
     );
   }
@@ -28,7 +26,6 @@ export default function RootLayout() {
   return (
     <>
       <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="splash" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="auth/login" />
         <Stack.Screen name="auth/signup" />
@@ -46,10 +43,7 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
+  splashContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F8F9FA',
   },
 });
